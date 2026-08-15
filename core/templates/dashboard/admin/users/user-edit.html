@@ -1,0 +1,81 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+
+
+
+{% block extra_css_no_compress %}
+
+{% endblock %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="card-header bg-transparent border-bottom">
+        <h4 class="fs-5 ff-vb"> ویرایش کاربر - شناسه {{object.pk}} </h4>
+    </div>
+    <div class="card-body">
+        <!-- Step content START -->
+        <div class="bs-stepper-content">
+            <form action="{% url 'dashboard:admin:user-edit' pk=object.pk %}" method="post">
+                {% csrf_token %}
+                <!-- Step 1 content START -->
+                <div class="content">
+
+
+                    <!-- Basic information START -->
+                    <div class="row g-4">
+                        <!-- Post title -->
+                        <div class="col-12">
+                            <label class="form-label">ایمیل</label>
+                            {{form.email}}
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">نوع کاربر</label>
+                            {{form.type}}
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">فعال</label>
+                            {{form.is_active}}
+                        </div>
+                        <div class="col-4">
+
+                            <label class="form-label">احراز شده</label>
+                            {{form.is_verified}}
+                        </div>
+
+
+
+                        <!-- button -->
+                        <div class="d-flex justify-content-between mt-3">
+                            <div>
+                                <button type="submit" class="btn btn-primary-soft mx-1 mb-0">ثبت تغییرات</button>
+                                <a href="{% url 'dashboard:admin:user-list' %}"
+                                    class="btn btn-secondary-soft mx-1 mb-0">بازگشت</a>
+                                <a href="{% url 'dashboard:admin:user-reset-password' pk=object.pk %}"
+                                    class="btn btn-warning-soft mx-1 mb-0">تغییر رمز</a>
+
+                            </div>
+                            <div>
+                                <a href="{% url 'dashboard:admin:user-delete' pk=object.pk %}"
+                                    class="btn btn-danger-soft mx-1 mb-0">حذف کاربر</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Basic information START -->
+                </div>
+                <!--  content END -->
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+
+{% endblock %}

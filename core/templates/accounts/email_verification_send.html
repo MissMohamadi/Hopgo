@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+
+
+<!-- Login -->
+
+
+<section>
+    <div class="container">
+
+        <div class="justify-content-center">
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="auth-wrap p-4 p-md-5">
+
+
+                        <div class="col-12 text-center mt-1 py-3">
+                            <h3>یک ایمیل جهت احراز هویت برای شما ارسال شد لطفا به ایمیل خود مراجعه نمایید</h3>
+
+                        </div>
+                        <div class="col-12 text-center mt-1 py-3">
+                            <a class="btn btn-primary-soft mx-2" href="{% url 'accounts:login' %}">بازگشت به ورود</a>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+{% endblock extra_css %}

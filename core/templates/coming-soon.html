@@ -1,0 +1,245 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+	<title>علی بیگدلی - توسعه دهنده پایتون</title>
+
+	<!-- Meta Tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="author" content="alibigdeli">
+	<meta name="description" content="چطور به یک توسعه دهنده پایتون تبدیل بشیم">
+
+	<!-- Dark mode -->
+	<script>
+		const storedTheme = localStorage.getItem('theme')
+
+		const getPreferredTheme = () => {
+			return 'dark';
+		}
+
+		const setTheme = function (theme) {
+			if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				document.documentElement.setAttribute('data-bs-theme', 'dark')
+			} else {
+				document.documentElement.setAttribute('data-bs-theme', theme)
+			}
+		}
+
+		setTheme(getPreferredTheme())
+
+		window.addEventListener('DOMContentLoaded', () => {
+			var el = document.querySelector('.theme-icon-active');
+			if (el != 'undefined' && el != null) {
+				const showActiveTheme = theme => {
+					const activeThemeIcon = document.querySelector('.theme-icon-active use')
+					const btnToActive = document.querySelector(`[data-bs-theme-value="${theme}"]`)
+					const svgOfActiveBtn = btnToActive.querySelector('.mode-switch use').getAttribute('href')
+
+					document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
+						element.classList.remove('active')
+					})
+
+					btnToActive.classList.add('active')
+					activeThemeIcon.setAttribute('href', svgOfActiveBtn)
+				}
+
+				window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+					if (storedTheme !== 'light' || storedTheme !== 'dark') {
+						setTheme(getPreferredTheme())
+					}
+				})
+
+				showActiveTheme(getPreferredTheme())
+
+				document.querySelectorAll('[data-bs-theme-value]')
+					.forEach(toggle => {
+						toggle.addEventListener('click', () => {
+							const theme = toggle.getAttribute('data-bs-theme-value')
+							localStorage.setItem('theme', theme)
+							setTheme(theme)
+							showActiveTheme(theme)
+						})
+					})
+
+			}
+		})
+
+	</script>
+
+	<!-- Favicon -->
+
+	<link rel="shortcut icon" type="image/png" href="{% static 'favicon/favicon.ico' %}" />
+	<link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-icon.png' %}">
+	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+	<link rel="manifest" href="{% static 'favicon/manifest.json' %}">
+
+
+
+	<!-- Plugins CSS -->
+	<link rel="stylesheet" type="text/css" href="{% static 'vendor/font-awesome/css/all.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'vendor/aos/aos.css' %}">
+
+	<!-- Theme CSS -->
+	<link rel="stylesheet" type="text/css" href="{% static 'css/style-rtl.css' %}">
+	<style>
+		.aparati {
+			color: #eb445b;
+			font-size: 20px
+		}
+	</style>
+	{% block extra_css_no_compress %}
+    
+    {% endblock %}
+
+
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-KX5G8LCQSL"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-KX5G8LCQSL');
+	</script>
+</head>
+
+<body>
+
+	<!-- **************** MAIN CONTENT START **************** -->
+	<main>
+		<section class="pt-0 pt-lg-5 position-relative overflow-hidden my-auto">
+
+			<!-- SVG decoration -->
+			<figure class="position-absolute bottom-0 start-0">
+				<svg width="822.2px" height="301.9px" viewBox="0 0 822.2 301.9">
+					<path class="fill-warning opacity-5"
+						d="M752.5,51.9c-4.5,3.9-8.9,7.8-13.4,11.8c-51.5,45.3-104.8,92.2-171.7,101.4c-39.9,5.5-80.2-3.4-119.2-12.1 c-32.3-7.2-65.6-14.6-98.9-13.9c-66.5,1.3-128.9,35.2-175.7,64.6c-11.9,7.5-23.9,15.3-35.5,22.8c-40.5,26.4-82.5,53.8-128.4,70.7 c-2.1,0.8-4.2,1.5-6.2,2.2L0,301.9c3.3-1.1,6.7-2.3,10.2-3.5c46.1-17,88.1-44.4,128.7-70.9c11.6-7.6,23.6-15.4,35.4-22.8 c46.7-29.3,108.9-63.1,175.1-64.4c33.1-0.6,66.4,6.8,98.6,13.9c39.1,8.7,79.6,17.7,119.7,12.1C634.8,157,688.3,110,740,64.6 c4.5-3.9,9-7.9,13.4-11.8C773.8,35,797,16.4,822.2,1l-0.7-1C796.2,15.4,773,34,752.5,51.9z">
+					</path>
+				</svg>
+			</figure>
+			<!-- SVG decoration -->
+			<figure class="position-absolute top-0 end-0 d-none d-xl-block">
+				<svg width="822.2px" height="301.9px" viewBox="0 0 822.2 301.9">
+					<path class="fill-danger opacity-3"
+						d="M752.5,51.9c-4.5,3.9-8.9,7.8-13.4,11.8c-51.5,45.3-104.8,92.2-171.7,101.4c-39.9,5.5-80.2-3.4-119.2-12.1 c-32.3-7.2-65.6-14.6-98.9-13.9c-66.5,1.3-128.9,35.2-175.7,64.6c-11.9,7.5-23.9,15.3-35.5,22.8c-40.5,26.4-82.5,53.8-128.4,70.7 c-2.1,0.8-4.2,1.5-6.2,2.2L0,301.9c3.3-1.1,6.7-2.3,10.2-3.5c46.1-17,88.1-44.4,128.7-70.9c11.6-7.6,23.6-15.4,35.4-22.8 c46.7-29.3,108.9-63.1,175.1-64.4c33.1-0.6,66.4,6.8,98.6,13.9c39.1,8.7,79.6,17.7,119.7,12.1C634.8,157,688.3,110,740,64.6 c4.5-3.9,9-7.9,13.4-11.8C773.8,35,797,16.4,822.2,1l-0.7-1C796.2,15.4,773,34,752.5,51.9z">
+					</path>
+				</svg>
+			</figure>
+
+			<div class="container position-relative">
+				<div class="row g-5 align-items-center justify-content-center">
+					<div class="col-lg-5">
+						<!-- Title -->
+						<h1 class="mt-4 mt-lg-0"> در حال ساخت یک سایت جدید هستم!</h1>
+						<!-- info -->
+						<p> به زودی با یک وبسایت بهتر و ساختاری منسجم تر برای آموزش شما باز خواهم گشت، می تونید با من در
+							شبکه های اجتماعی در ارتباط باشید</p>
+						<!-- Progress bar -->
+						<div class="overflow-hidden mt-4">
+							<p class="mb-1 h6 fw-light text-start">میزان پیشرفت</p>
+							<div class="progress progress-md progress-percent-bg bg-light">
+								<div class="progress-bar progress-bar-striped bg-blue aos" data-aos="slide-left"
+									data-aos-delay="200" data-aos-duration="1000" data-aos-easing="ease-in-out"
+									role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"
+									style="width:90%">
+									<span class="progress-percent text-white">90%</span>
+								</div>
+							</div>
+						</div>
+
+
+					</div>
+
+					<div class="col-lg-7 text-center">
+						<!-- Image -->
+						<div class="col-md-6 col-lg-12 ">
+							<!-- Instructor image START -->
+							<div class="card shadow p-2  text-center">
+								<div class="rounded-3">
+									<!-- Image -->
+									<img src="{% static 'images/avatar/alibigdeli.png' %}" class="card-img pt-3 bg-dark"
+										alt="course image" Style="width:400px;border-radius: 50% !important">
+								</div>
+
+								<!-- Card body -->
+								<div class="card-body px-3">
+									<ul class="list-group list-group-borderless">
+										<li class="list-group-item px-0">
+											<span class="h6 fw-light"><i
+													class="fas fa-fw fa-envelope text-primary me-1 me-sm-3"></i>ایمیل:</span>
+											<span>bigdeli.ali3@gmail.com</span>
+										</li>
+										<li class="list-group-item px-0">
+											<span class="h6 fw-light"><i
+													class="fas fa-fw fa-phone text-primary me-1 me-sm-3"></i>شماره
+												تماس:</span>
+											<span>09124610183</span>
+										</li>
+										<li class="list-group-item px-0">
+											<span class="h6 fw-light">
+												شبکه های اجتماعی</span>
+
+										</li>
+									</ul>
+									<!-- Social media button -->
+									<ul class="list-inline mb-0 py-2">
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-twitter"
+												href="https://t.me/thealibigdeli" target="_blank"><i
+													class="fab fa-fw fa-telegram"></i></a> </li>
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-instagram-gradient"
+												href="https://instagram.com/thealibigdeli" target="_blank"><i
+													class="fab fa-fw fa-instagram"></i></a> </li>
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-linkedin"
+												href="https://www.linkedin.com/in/thealibigdeli/" target="_blank"><i
+													class="fab fa-fw fa-linkedin-in"></i></a> </li>
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-white"
+												href="https://www.aparat.com/thealibigdeli" target="_blank"><img
+													src="{% static 'images/client/aparat-red.webp' %}" style="width:15px"
+													alt="aparat"></span></a> </li>
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-danger"
+												href="https://youtube.com/TheAliBigdeli" target="_blank"><i
+													class="text-white fab fa-fw fa-youtube"></i></a> </li>
+										<li class="list-inline-item"> <a class="btn px-2 btn-sm bg-dark"
+												href="https://github.com/AliBigdeli" target="_blank"><i
+													class="text-white fab fa-fw fa-github"></i></a> </li>
+									</ul>
+								</div>
+							</div>
+							<!-- Instructor image END -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+	<!-- **************** MAIN CONTENT END **************** -->
+
+	<!-- Back to top -->
+	<div class="back-top"><i class="fas fa-arrow-up position-absolute top-50 start-50 translate-middle"></i></div>
+
+	<!-- Bootstrap JS -->
+	<script src="{% static 'vendor/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+
+	<!-- Vendors -->
+	<script src="{% static 'vendor/aos/aos.js' %}"></script>
+
+	<!-- Template Functions -->
+	<script src="{% static 'js/functions.js' %}"></script>
+	<script>
+		const aparat = {
+			prefix: 'fac',
+			iconName: 'aparat',
+			icon: [1368, 1368, [], 'e4747', 'M734 2286 c-63 -30 -118 -77 -149 -130 -21 -37 -90 -264 -83 -272 2 -2 35 29 73 68 90 91 170 147 286 202 89 42 228 86 273 86 42 0 -2 19 -101 44 -134 34 -229 35 -299 2z M1172 2170 c-392 -55 -699 -337 -779 -715 -19 -90 -19 -280 0 -370 71 -338 326 -603 665 -692 139 -36 325 -36 464 0 339 89 594 354 665 692 19 90 19 280 0 370 -71 336 -329 606 -662 690 -106 27 -260 38 -353 25z m-45 -266 c47 -17 117 -87 139 -139 8 -19 14 -61 14 -93 0 -116 -81 -217 -197 -243 -154 -35 -303 85 -303 243 0 72 20 121 68 171 78 81 167 100 279 61z m670 -132 c89 -46 153 -164 138 -255 -10 -60 -37 -108 -85 -151 -55 -50 -97 -66 -168 -66 -192 0 -314 210 -218 374 27 46 86 94 141 114 44 17 144 8 192 -16z m-463 -414 c54 -24 75 -102 42 -153 -58 -89 -198 -47 -198 59 0 79 82 129 156 94z m-326 -144 c96 -48 148 -136 139 -240 -11 -142 -133 -245 -272 -231 -176 18 -282 204 -205 358 22 42 89 105 134 125 53 23 145 18 204 -12z m605 -105 c145 -36 230 -211 168 -344 -24 -51 -84 -109 -136 -131 -53 -22 -142 -21 -196 3 -50 22 -114 88 -135 139 -39 94 0 229 83 288 73 52 137 65 216 45z M1890 2053 c0 -3 31 -34 69 -69 86 -79 158 -176 210 -280 40 -80 91 -237 91 -280 0 -12 5 -26 10 -29 6 -3 10 -4 10 -1 0 3 14 55 30 116 34 126 39 221 14 293 -20 60 -93 141 -154 172 -46 23 -280 88 -280 78z M267 1018 c-31 -118 -35 -212 -11 -281 20 -60 93 -141 154 -172 44 -22 248 -80 256 -72 2 1 -31 37 -72 77 -42 41 -96 103 -120 136 -60 85 -130 234 -150 324 -10 41 -20 79 -24 83 -4 4 -19 -39 -33 -95z M2012 610 c-141 -155 -353 -272 -551 -305 -56 -9 -44 -16 86 -49 145 -37 231 -36 311 5 70 35 133 100 157 162 23 62 74 257 66 257 -3 -1 -34 -32 -69 -70z']
+		}
+
+		FontAwesome.library.add(
+			aparat
+		)
+	</script>
+
+</body>
+
+</html>

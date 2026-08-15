@@ -1,0 +1,193 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load dashboard_tags %}
+
+
+
+
+{% block extra_css_no_compress %}
+<link href="{% static 'vendor/tagify/tagify.min.css' %}" rel="stylesheet" type="text/css" />
+
+<style>
+    .tagify__tag {
+        margin-right: 5px;
+        margin-left: 5px;
+
+    }
+    .tagify--focus {
+        background-color: rgb(255, 255, 255);
+        
+    }
+    .tagify__input{
+        color: black;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="card-header bg-transparent border-bottom">
+        <h4 class="fs-5 ff-vb"> ویرایش کتاب - شناسه {{object.pk}} </h4>
+    </div>
+    <div class="card-body">
+        <!-- Step content START -->
+        <div class="bs-stepper-content">
+            <form action="{% url 'dashboard:admin:book-edit' pk=object.pk %}" method="post" id="post-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Step 1 content START -->
+                <div class="content">
+
+
+                    <!-- Basic information START -->
+                    <div class="row g-4">
+                        <!-- Post title -->
+                        <div class="col-12">
+                            <label class="form-label">عنوان</label>
+                            {{form.title}}
+                        </div>
+
+                        <!-- Short description -->
+                        <div class="col-12">
+                            <label class="form-label">slug - <button class="btn btn-sm btn-primary-soft" type="button"
+                                    onclick="generateSlug()">Generate
+                                    Slug</button></label>
+                            {{form.slug}}
+                        </div>
+
+                        <!-- Post category -->
+                        <div class="col-md-6">
+                            <label class="form-label">دسته بندی</label>
+                            {{form.category}}
+                        </div>
+
+                        <!-- Post status -->
+                        <div class="col-md-6">
+                            <label class="form-label">وضعیت</label>
+                            {{form.status}}
+                        </div>
+
+                        <!-- Post image_alt -->
+                        <div class="col-md-6">
+                            <label class="form-label">توضیح تصویر</label>
+                            {{form.image_alt}}
+                        </div>
+                        <!-- Post image -->
+                        <div class="col-md-6">
+                            <label class="form-label">تصویر بنر</label>
+                            <div class="d-flex justify-content-between">
+                                <input type="file" name="image" class="form-control mx-1" accept="image/*">
+                                <button class="btn btn-light mx-1" type="button" data-bs-toggle="modal" data-bs-target="#imageModal"><i class="fas fa-eye" ></i></button>
+                            </div>
+                        </div>
+
+
+                           <!-- Post image_alt -->
+                        <div class="col-md-6">
+                            <label class="form-label">ادرس فایل</label>
+                            {{form.link_file}}
+                        </div>
+                        <!-- Post image -->
+                        <div class="col-md-6">
+                            <label class="form-label">فایل pdf</label>
+                            <div class="d-flex justify-content-between">
+                                <input type="file" class="form-control" placeholder="" name="pdf_file"
+                                    accept="application/pdf">
+                                <button class="btn btn-light mx-1" type="button" data-bs-toggle="modal" data-bs-target="#fileModal"><i class="fa fa-eye" ></i></button>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Post description -->
+                        <div class="col-12">
+                            <label class="form-label">توضیحات</label>
+                            {{form.content}}
+                        </div>
+                        <!-- Tags START -->
+                        <div class="col-12">
+                            <div class=" ">
+                                <label class="mb-0">برچسب ها</label>
+                                <!-- Comment -->
+                                <div class="mt-3">
+                                    <input type="text" class="form-control" name="tags">
+                                    <span class="small">حداکثر 15 کلمه و هر کلمه را با کاما جدا کنید</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags START -->
+                        <!-- button -->
+                        <div class="d-flex justify-content-between mt-3">
+                            <div>
+                                <button type="submit" class="btn btn-primary-soft mx-1 mb-0">ثبت تغییرات</button>
+                                <a href="{% url 'dashboard:admin:book-list' %}"
+                                    class="btn btn-secondary-soft mx-1 mb-0">بازگشت</a>
+                                <a href="{% url 'dashboard:admin:book-detail' pk=object.pk %}" target="_blank"
+                                    class="btn btn-warning-soft mx-1 mb-0">پیشنمایش</a>
+                            </div>
+                            <div>
+                                <a href="{% url 'dashboard:admin:book-delete' pk=object.pk %}"
+                                    class="btn btn-danger-soft mx-1 mb-0">حذف کتاب</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Basic information START -->
+                </div>
+                <!--  content END -->
+
+
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="imageModalLabel">تصویر فعلی</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img src="{{ object.image.url }}" />
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="imageModalLabel">فایل فعلی</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="pdf-preview">
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.polyfills.min.js' %}"></script>
+<script src="https://lib.arvancloud.ir/pdfobject/2.2.8/pdfobject.min.js"></script>
+
+<script>PDFObject.embed("{{object.pdf_file.url}}", "#pdf-preview");</script>
+
+<script>
+    let initialTags = `{% for tag  in object.tag.all %} {{tag.title}} {% if not forloop.last %},{% endif %} {% endfor %}`.split(",")
+    var input = document.querySelector('input[name="tags"]');
+    var tagify = new Tagify(input);
+    initialTags.forEach(function (tag) {
+        tagify.addTags([tag]);
+    });
+    ;
+</script>
+
+{% endblock %}

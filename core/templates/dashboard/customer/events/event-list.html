@@ -1,0 +1,151 @@
+{% extends 'dashboard/customer/base.html' %}
+{% load static %}
+{% load dashboard_tags %}
+
+{% block extra_css %}
+{% endblock extra_css %}
+{% block breadcrumbs %}
+<div class="col-lg-10 mx-auto text-center position-relative">
+    <div class="d-flex justify-content-center position-relative pt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:customer:home' %}">داشبورد</a></li>
+                <li class="breadcrumb-item">رویداد ها</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<!-- Card START -->
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="d-flex card-header bg-transparent border-bottom justify-content-between">
+        <h3 class="mb-0 ff-vb fs-5">لیست رویداد ها</h3>
+    </div>
+    <!-- Card header END -->
+
+    <!-- Card body START -->
+    <div class="card-body">
+
+        <!-- Search and select START -->
+        <div class="row g-3 align-items-center justify-content-between mb-4">
+            <form class="row g-3">
+                <!-- Search -->
+                <div class="col-md-6">
+                    <div class="rounded position-relative">
+                        <input class="form-control pe-5 bg-transparent position-relative" placeholder="جستجوی رویداد ها"
+                            name="q" value="{% if request.GET.q  %} {{request.GET.q }} {% endif %}">
+                        <button
+                            class="bg-transparent p-2 position-absolute top-50 end-0 translate-middle-y border-0 text-primary-hover text-reset"
+                            type="submit">
+                            <i class="fas fa-search fs-6 "></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Select option -->
+                <div class="col-md-3">
+                    <!-- Short by filter -->
+
+                    <select class="form-select z-index-9 bg-transparent" aria-label=".form-select-sm" name="ordering"
+                        onchange="this.form.submit()">
+                        <option value="-created_date">تازه ترین</option>
+                        <option value="-views" {% if request.GET.ordering == "-views" %}selected{% endif %}>پربازدیدترین
+                        </option>
+                        <option value="created_date" {% if request.GET.ordering == "created_date" %}selected{% endif %}>
+                            قدیمی ترین </option>
+                    </select>
+
+                </div>
+                <!-- Select option -->
+                <div class="col-md-3">
+                    <!-- Short by filter -->
+
+                    <select class="form-select z-index-9 bg-transparent" aria-label=".form-select-sm" name="category"
+                        onchange="this.form.submit()">
+                        <option value="">دسته بندی ها</option>
+                        {% for category in categories %}
+                        <option value="{{category.slug}}" {% if request.GET.category == category.slug %}selected{% endif %}>{{category.title}}</option>
+
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </form>
+
+        </div>
+        <!-- Search and select END -->
+
+          <!-- Course list table START -->
+          <div class="table-responsive border-0">
+            <table class="table table-dark-gray align-middle p-4 mb-0 table-hover">
+                <!-- Table head -->
+                <thead>
+                    <tr>
+                        <th scope="col" class="border-0 rounded-start">عنوان رویداد</th>
+                        <th scope="col" class="border-0">زمان برگزاری</th>
+                        <th scope="col" class="border-0">وضعیت</th>
+                        <th scope="col" class="border-0">دسته بندی</th>
+                        <th scope="col" class="border-0 rounded-end">عملیات</th>
+                    </tr>
+                </thead>
+
+                <!-- Table body START -->
+                <tbody>
+                    {% for object in object_list %}
+                    <!-- Table item -->
+                    <tr>
+                        <!-- Course item -->
+                        <td>
+                            {{object.title}}
+                        </td>
+                        <td>
+                            {{object.event_date|jalali_time:" %Y/%m/%d %H:%M"}}
+                        </td>
+                        <!-- Enrolled item -->
+
+                        <!-- Status item -->
+                        <td>
+                            <div
+                                class="badge {% if object.status == 1 %}bg-success text-success {% else %}bg-warning  text-warning  {% endif %} bg-opacity-10 ">
+                                {{object.get_phase_display}}</div>
+                        </td>
+                        <!-- Price item -->
+                        <td>{{object.category.title}}</td>
+
+                        <td>
+                            <a href="{% url 'dashboard:customer:event-detail' slug=object.slug %}"
+                                class="btn btn-sm btn-primary-soft me-1 mb-0">جزئیات برگزاری</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+
+                </tbody>
+                <!-- Table body END -->
+            </table>
+            {% if not object_list %}
+            <div style="margin-bottom:400px"></div>
+            {% endif %}
+        </div>
+
+
+
+
+        {% include 'dashboard/components/paginations.html' %}
+
+
+
+    </div>
+
+</div>
+<!-- Card END -->
+{% endblock content %}
+
+
+{% block extra_js %}
+{% endblock extra_js %}

@@ -1,0 +1,56 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+
+
+
+{% block extra_css_no_compress %}
+{% endblock  %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="card-header bg-transparent border-bottom">
+        <h4 class="fs-5 ff-vb"> اپلود فایل جدید </h4>
+    </div>
+    <div class="card-body">
+        <!-- Step content START -->
+        <div class="bs-stepper-content">
+            <form action="{% url 'dashboard:admin:filehub-create' %}" method="post" id="post-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Step 1 content START -->
+                <div class="content">
+
+
+                    <!-- Basic information START -->
+                    <div class="row g-4">
+
+                        <div class="col-md-6">
+                            <label class="form-label">فایل</label>
+                            <input type="file" class="form-control" placeholder="" name="file">
+                            
+                        </div>
+
+                        <!-- button -->
+                        <div class="d-flex justify-content-start mt-3">
+                            <button type="submit" class="btn btn-primary-soft mx-1 mb-0">آپلود </button>
+                            <a href="{% url 'dashboard:admin:filehub-list' %}" class="btn btn-secondary-soft mx-1 mb-0">بازگشت</a>
+                        </div>
+                    </div>
+                    <!-- Basic information START -->
+                </div>
+                <!--  content END -->
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+<
+{% endblock  %}

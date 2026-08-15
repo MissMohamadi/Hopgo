@@ -1,0 +1,42 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+
+
+
+
+{% block extra_css_no_compress %}
+
+{% endblock  %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+
+    <div class="d-flex card-header bg-transparent border-bottom justify-content-between">
+        <h3 class="mb-0 ff-vb fs-5">دموی نمایش پست {{object.title}}</h3>
+        <a class="btn btn-primary-soft" href="{% url 'dashboard:admin:post-edit' pk=object.pk %}"> بازگشت </a>
+    </div>
+    <div class="col-lg-12 pt-5 pt-lg-0 mx-3 my-5">
+        <!-- Pre title -->
+        <span>{{ object.published_date|jalali_time:"%Y/%m/%d "}} </span><span class="mx-2">|</span>
+        <div class="badge text-bg-success">{{object.category}}</div>
+        <!-- Title -->
+        <h1 class="mt-2 mb-0 fs-3">{{object.title}}</h1>
+        <!-- Info -->
+
+        <div class="my-2 justify-content-evenly">
+            <img class="img-fluid rounded-3 w-100" src="{{object.image_large.url}}" loading="lazy" />
+        </div>
+
+        <p class="mt-2">{{object.content|safe}}</p>
+
+    </div>
+</div>
+
+
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+{% endblock  %}

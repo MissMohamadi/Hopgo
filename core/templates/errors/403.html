@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+
+{% endblock %}
+
+{% block content %}
+
+<section class="pt-5">
+	<div class="container">
+		<div class="row">
+			<div class="col-12 text-center">
+				<!-- Image -->
+				<img src="{% static 'images/element/error404-01.svg' %}" class="h-200px h-md-400px mb-4" alt="">
+				<!-- Title -->
+				<h1 class="display-1 text-danger mb-0">403</h1>
+				<!-- Subtitle -->
+				<h2>فکر کردی از الکیه دیگه!</h2>
+				<!-- info -->
+				<p class="mb-4">نمیگذرام بری اونجا فهمیدی!</p>
+				<!-- Button -->
+				<a href="{%  url 'website:index' %}" class="btn btn-primary mb-0">برگشت به صفحه اصلی</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+{% endblock %}

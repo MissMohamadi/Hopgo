@@ -1,0 +1,109 @@
+{% extends 'dashboard/customer/base.html' %}
+{% load static %}
+{% load dashboard_tags %}
+
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block breadcrumbs %}
+<div class="col-lg-10 mx-auto text-center position-relative">
+    <div class="d-flex justify-content-center position-relative pt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:customer:home' %}">داشبورد</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:customer:event-list' %}">رویداد ها</a></li>
+                <li class="breadcrumb-item">{{object.title}}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Card START -->
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="d-flex card-header bg-transparent border-bottom justify-content-between">
+        <h3 class="mb-0 ff-vb fs-5"> رویداد - {{object.title}}</h3>
+    </div>
+    <!-- Card header END -->
+
+    <!-- Card body START -->
+    <div class="card-body">
+        <div class="row">
+            <img src="{{object.image_large.url}}">
+        </div>
+        <div class="row my-5">
+            {{object.content|safe}}
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">نوع برگزاری: </span>
+                    <span class="mx-1">{{object.get_event_type_display}} </span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">زمان برگزاری: </span>
+                    <span class="mx-1"> {{object.event_date|jalali_time:" %Y/%m/%d %H:%M"}} </span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">برگزار کننده: </span>
+                    <span class="mx-1"> {{object.user.user_profile.get_fullname}} </span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">مدت زمان برگزاری: </span>
+                    <span class="mx-1"> {{object.estimated_time}} ساعت</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1"> دسته بندی: </span>
+                    <span class="mx-1"> {{object.category.title}} </span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1"> وضعیت: </span>
+                    <span class="mx-1"> {{object.get_phase_display}} </span>
+                </div>
+            </div>
+        </div>
+        <hr>
+        {% if object.is_online %}
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">لینک شرکت در رویداد: </span>
+                    <span class="mx-1">{{object.meeting_url}} </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if object.is_inplace %}
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-evenly mt-2">
+                    <span class="mx-1">آدرس شرکت در رویداد: </span>
+                    <span class="mx-1">{{object.address}} </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+<!-- Card END -->
+{% endblock content %}
+
+
+{% block extra_js %}
+{% endblock extra_js %}

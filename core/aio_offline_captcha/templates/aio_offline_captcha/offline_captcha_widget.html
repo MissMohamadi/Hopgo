@@ -1,0 +1,121 @@
+<style>
+/* Box sizing to prevent padding overflow */
+.offline-captcha-container,
+.offline-captcha-container * {
+    box-sizing: border-box;
+}
+
+/* Main captcha container */
+.offline-captcha-container {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    max-width: 600px;
+    width: 100%;
+    background-color: rgba(59, 130, 246, 0.1); /* primary bg with opacity */
+    color: #3b82f6; /* primary text color */
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Image wrapper */
+.offline-captcha-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Captcha image */
+.offline-captcha-image {
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    max-width: 150px;
+    height: auto;
+}
+
+/* Input wrapper */
+.offline-captcha-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Input field */
+.offline-captcha-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    direction: ltr;
+}
+
+.offline-captcha-input:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    outline: none;
+}
+
+.offline-captcha-input:hover {
+    border-color: #adb5bd;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .offline-captcha-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin: 0 auto;
+    }
+
+    .offline-captcha-image-wrapper {
+        order: -1;
+        justify-content: center;
+    }
+
+    .offline-captcha-image {
+        width: 150px;
+        height: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .offline-captcha-container {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .offline-captcha-image {
+        width: 140px;
+        height: 55px;
+    }
+
+    .offline-captcha-input {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.95rem;
+    }
+}
+</style>
+
+<div class="offline-captcha-container" data-widget-uuid="{{ widget_uuid }}">
+    <div class="offline-captcha-image-wrapper">
+        <img src="{{ captcha_image }}" alt="Captcha Image" class="offline-captcha-image">
+    </div>
+
+    <div class="offline-captcha-input-wrapper">
+        <input type="text"
+               id="id_{{ widget_uuid }}"
+               name="{{ widget.name }}"
+               placeholder="Enter the Captcha"
+               class="offline-captcha-input"
+               required>
+        <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
+    </div>
+</div>
+

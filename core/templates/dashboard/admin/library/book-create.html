@@ -1,0 +1,174 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+
+
+
+{% block extra_css_no_compress %}
+<link href="{% static 'vendor/tagify/tagify.min.css' %}" rel="stylesheet" type="text/css" />
+
+<style>
+    .tagify__tag {
+        margin-right: 5px;
+        margin-left: 5px;
+
+    }
+
+    .jdp-year {
+        direction: ltr;
+    }
+
+    .tagify--focus {
+        background-color: rgb(255, 255, 255);
+    }
+    .tagify__input{
+        color: black;
+    }
+    
+</style>
+{% endblock  %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="card-header bg-transparent border-bottom">
+        <h4 class="fs-5 ff-vb"> ایجاد کتاب جدید </h4>
+    </div>
+    <div class="card-body">
+        <!-- Step content START -->
+        <div class="bs-stepper-content">
+            <form action="{% url 'dashboard:admin:book-create' %}" method="post" id="post-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Step 1 content START -->
+                <div class="content">
+
+
+                    <!-- Basic information START -->
+                    <div class="row g-4">
+                        <!-- Post title -->
+                        <div class="col-12">
+                            <label class="form-label">عنوان</label>
+                            {{form.title}}
+                        </div>
+
+                        <!-- Short description -->
+                        <div class="col-12">
+                            <label class="form-label">slug - <button class="btn btn-sm btn-primary-soft" type="button" onclick="generateSlug()">Generate
+                                    Slug</button></label>
+                            {{form.slug}}
+                        </div>
+
+                        <!-- Post category -->
+                        <div class="col-md-6">
+                            <label class="form-label">دسته بندی</label>
+                            {{form.category}}
+                        </div>
+
+
+
+                        <!-- Post status -->
+                        <div class="col-md-6">
+                            <label class="form-label">وضعیت</label>
+                            {{form.status}}
+                        </div>
+
+
+                        <!-- Post image_alt -->
+                        <div class="col-md-6">
+                            <label class="form-label">توضیح تصویر</label>
+                            {{form.image_alt}}
+                        </div>
+                        <!-- Post image -->
+                        <div class="col-md-6">
+                            <label class="form-label">تصویر بنر</label>
+                            <input type="file" class="form-control" placeholder="" name="image"
+                                accept="image/png, image/jpeg">
+                            
+                        </div>
+
+                        <!-- Post image_alt -->
+                        <div class="col-md-6">
+                            <label class="form-label">ادرس فایل</label>
+                            {{form.link_file}}
+                        </div>
+                        <!-- Post image -->
+                        <div class="col-md-6">
+                            <label class="form-label">فایل pdf</label>
+                            <input type="file" class="form-control" placeholder="" name="pdf_file"
+                                accept="application/pdf">
+                            
+                        </div>
+
+
+
+
+                        <!-- Post description -->
+                        <div class="col-12">
+                            <label class="form-label">توضیحات</label>
+                            {{form.content}}
+                        </div>
+                        <!-- Tags START -->
+                        <div class="col-12">
+                            <div class=" ">
+                                <label class="mb-0">برچسب ها</label>
+                                <!-- Comment -->
+                                <div class="mt-3">
+                                    <input type="text" class="form-control" name="tags">
+                                    <span class="small">حداکثر 15 کلمه و هر کلمه را با کاما جدا کنید</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tags START -->
+                        <!-- button -->
+                        <div class="d-flex justify-content-start mt-3">
+                            <button type="submit" class="btn btn-primary-soft mx-1 mb-0">ثبت تغییرات</button>
+                            <a href="{% url 'dashboard:admin:book-list' %}" class="btn btn-secondary-soft mx-1 mb-0">بازگشت</a>
+                        </div>
+                    </div>
+                    <!-- Basic information START -->
+                </div>
+                <!--  content END -->
+
+
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.polyfills.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/jalalidatepicker/jalalidatepicker.min.js' %}"></script>
+
+
+<script>
+    $(document).ready(function () {
+        $('#post-form').submit(function (event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            // Get the input value and modify it
+            var inputValue = $('#my-input').val();
+            var modifiedValue = 'Modified: ' + inputValue;
+
+            // Set the modified value as the input value
+            $('#my-input').val(modifiedValue);
+
+            // Submit the form
+            this.submit();
+        });
+    });
+
+
+</script>
+<script>
+    var input = document.querySelector('input[name="tags"]');
+    var tagify = new Tagify(input);
+
+</script>
+{% endblock  %}

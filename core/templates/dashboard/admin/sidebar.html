@@ -1,0 +1,63 @@
+{% load dashboard_tags %}
+
+<!-- Offcanvas body -->
+<div class="offcanvas-body p-3 p-xl-0">
+    <div class="bg-dark border rounded-3 p-3 w-100">
+        <!-- Dashboard menu -->
+        <div class="list-group list-group-dark list-group-borderless collapse-list">
+            <a class="list-group-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                href="{% url 'dashboard:admin:home' %}"><i class="fas fa-th fa-fw me-2"></i>داشبورد</a>
+
+            <li class="list-group">
+                <a class="list-group-item {% if request.resolver_match.url_name == 'post-list' or request.resolver_match.url_name == 'post-category-list' %}active{% endif %}"
+                    data-bs-toggle="collapse" href="#collapse-blog" role="button" aria-expanded="false"
+                    aria-controls="collapsepage">
+                    <i class="far fa-file-alt fa-fw me-2"></i>وبلاگ
+                </a>
+                <!-- Submenu -->
+                <ul class="list-group flex-column collapse border border-secondary p-2" id="collapse-blog"
+                    data-bs-parent="#navbar-sidebar">
+                    <li class="list-group-item"> <a class="nav-link " href="{% url 'dashboard:admin:post-list' %} ">پست
+                            ها</a></li>
+                    <li class="list-group-item"> <a class="nav-link"
+                            href="{% url 'dashboard:admin:post-category-list' %}">دسته بندی ها</a>
+                    </li>
+
+                </ul>
+            </li>
+
+            <li class="list-group">
+                <a class="list-group-item {% if request.resolver_match.url_name == 'book-list' or request.resolver_match.url_name == 'book-category-list' %}active{% endif %}"
+                    data-bs-toggle="collapse" href="#collapse-library" role="button" aria-expanded="false"
+                    aria-controls="collapsepage">
+                    <i class="fas fa-book-open fa-fw me-2"></i> کتابخانه
+                </a>
+                <!-- Submenu -->
+                <ul class="list-group flex-column collapse border border-secondary p-2" id="collapse-library"
+                    data-bs-parent="#navbar-sidebar">
+                    <li class="list-group-item"> <a class="nav-link " href="{% url 'dashboard:admin:book-list' %} "> کتاب ها
+                            </a></li>
+                    
+                    <li class="list-group-item"> <a class="nav-link"
+                            href="{% url 'dashboard:admin:book-category-list' %}">دسته بندی ها</a>
+                    </li>
+
+                </ul>
+            </li>            
+            <a class="list-group-item {% if request.resolver_match.url_name == 'ticket-list' %}active{% endif %}"
+                href="{% url 'dashboard:admin:ticket-list' %}"><i class="fas fa-envelope fa-fw me-2"></i> تیکت ها</a>
+            <a class="list-group-item {% if request.resolver_match.url_name == 'newsletter-list' %}active{% endif %}"
+                href="{% url 'dashboard:admin:newsletter-list' %}"><i class="far fa-newspaper fa-fw me-2"></i>خبرنامه ها</a>
+            <a class="list-group-item {% if request.resolver_match.url_name == 'user-list' %}active{% endif %}"
+                href="{% url 'dashboard:admin:user-list' %}"><i class="fas fa-user fa-fw me-2"></i>کاربر ها</a>
+            <a class="list-group-item {% if request.resolver_match.url_name == 'filehub-list' %}active{% endif %}"
+                href="{% url 'dashboard:admin:filehub-list' %}"><i class="fas fa-cloud-upload-alt"></i>فضای ذخیره</a>
+            <a class="list-group-item {% if request.resolver_match.url_name == 'profile-edit' %}active{% endif %}"
+                href="{% url 'dashboard:admin:profile-edit' %}"><i class="far fa-edit fa-fw me-2"></i>ویرایش
+                پروفایل</a>
+            <a class="list-group-item text-danger bg-danger-soft-hover" href=" {% url 'accounts:logout' %}"><i
+                    class="fas fa-sign-out-alt fa-fw me-2"></i>خروج</a>
+
+        </div>
+    </div>
+</div>

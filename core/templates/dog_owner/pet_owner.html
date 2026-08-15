@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HopGo | داگ واکر مورد اعتماد تو</title>
+
+  <!-- فونت وزیرمتن -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;800&display=swap" rel="stylesheet">
+
+  <style>
+      @import url("farsi-fonts-styles/primary-iran-yekan.css");
+      @import url("farsi-fonts-styles/secondary-pinar.css");
+
+    /* ---------- ۱) متغیرها ---------- */
+    :root{
+      --sage:#89B093; --sage-dark:#5f7f68; --sage-soft:#eef3ec;
+      --orange:#FE8348; --peach:#fdeee6;
+      --cream:#faf7f2; --cream-dark:#f4f1ea;
+      --ink:#3c4a42; --muted:#8a948d; --line:#e7e2d9;
+      --radius:20px; --shadow:0 12px 32px rgba(70,90,70,.10);
+    }
+
+    /* ---------- ۲) پایه ---------- */
+    *{ margin:0; padding:0; box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{ font-family:'Vazirmatn',sans-serif; background:var(--cream); color:var(--ink); line-height:1.9; overflow-x:clip; }
+    img{ display:block; max-width:100%; }
+    a{ text-decoration:none; color:inherit; }
+    .container{ max-width:1120px; margin-inline:auto; padding-inline:24px; }
+
+    /* ---------- ۳) دکمه‌ها ---------- */
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:999px; padding:12px 24px;
+          font-family:inherit; font-size:13px; font-weight:700; border:none; cursor:pointer; transition:.25s; }
+    .btn svg{ width:18px; height:18px; flex-shrink:0; }
+    .btn-primary{ background:var(--sage); color:#fff; }
+    .btn-primary:hover{ background:var(--sage-dark); }
+    .btn-ghost{ background:#fff; border:1px solid var(--line); color:var(--ink); }
+    .btn-ghost:hover{ border-color:var(--sage); color:var(--sage-dark); }
+    .btn-orange{ background:var(--orange); color:#fff; }
+    .btn-orange:hover{ background:#e06b3a; }
+
+    /* ---------- ۴) هدر ---------- */
+    .site-header{ background:rgba(255,255,255,.95); backdrop-filter:blur(10px); position:sticky; top:0; z-index:50; box-shadow:0 1px 0 var(--line); }
+    .header-inner{ display:flex; align-items:center; justify-content:space-between; height:72px; gap:16px; }
+    .auth{ display:flex; gap:10px; }
+    .menu-toggle{ display:none; }
+    .hamburger{ display:none; width:40px; height:40px; border-radius:12px; background:var(--sage-soft); color:var(--sage-dark); place-items:center; font-size:18px; cursor:pointer; }
+    .hamburger::before{ content:"☰"; }
+    .menu-toggle:checked ~ .hamburger::before{ content:"✕"; }
+    .nav{ display:flex; gap:26px; font-size:13px; color:var(--muted); font-weight:600; }
+    .nav a:hover{ color:var(--sage-dark); }
+     .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      line-height: 0; /* فاصله اضافی زیر تصویر را حذف می‌کند */
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      display: block;
+      height: 36px;      /* هم‌اندازه با لوگوی SVG/متنی قبلی */
+      width: auto;
+      max-width: 150px;
+      object-fit: contain;
+    }
+
+    /* ---------- ۵) هیرو ----------
+        ساختار: ستون اول (راست در RTL) = تصویر + کارت‌ها | ستون دوم (چپ) = متن
+        برای اینکه متن سمت چپ باشد، ستون متن را order:2 و تصویر را order:1 نمی‌دهیم؛
+        بلکه در RTL اولین فرزندِ گرید سمت راست می‌افتد. پس:
+          فرزند ۱ = hero-media-wrapper (سمت راست) ← کارت‌ها اینجا
+          فرزند ۲ = hero-copy (سمت چپ) ← متن اینجا
+    */
+    /* ---------- ۵) هیرو ---------- */
+.hero{ padding:0 0 40px; overflow:clip; }  /* تصویر به هدر بچسبد؛ بدون اسکرول افقی */
+
+.hero-inner{ display:grid; grid-template-columns:1.1fr 1fr; gap:48px; align-items:center; }
+
+/* ستون تصویر: تمام‌قد تا لبهٔ راست ویوپورت */
+.hero-media-wrapper{
+  position:relative;
+  /* فرمول آشنای خودمان: ۲۴px پدینگ کانتینر + نصف فضای بیرون از 1120px */
+  margin-right:calc(-24px - max(0px, 50vw - 560px));
+}
+
+.hero-media-wrapper > img{
+  width:100%;
+  height:540px;
+  object-fit:cover;
+  border-radius:0;     /* ← قاب حذف شد */
+  box-shadow:none;     /* ← سایهٔ اضافه حذف شد */
+  /* محوسازی سمت چپ، دقیقاً مثل فایل مرجع */
+  -webkit-mask-image:linear-gradient(to left, #000 90%, transparent 100%);
+          mask-image:linear-gradient(to left, #000 90%, transparent 100%);
+}
+
+/* چهار کارت سفید: حالا سمت راست تصویر */
+.floating-stats{
+  position:absolute;
+  top:28px;
+  /* ← فرمولِ معکوسِ bleed تصویر؛ لبهٔ کارت‌ها = لبهٔ محتوای کانتینر */
+  right:calc(24px + max(0px, 50vw - 560px));
+  display:flex; flex-direction:column; gap:12px;
+  z-index:3;
+}
+
+.float-card{ background:#fff; border-radius:16px; padding:12px 16px; box-shadow:var(--shadow);
+             display:flex; align-items:center; gap:12px; min-width:210px; }
+.float-card .ic{ width:38px; height:38px; border-radius:10px; display:grid; place-items:center; flex-shrink:0; }
+.float-card .ic svg{ width:18px; height:18px; }
+.float-card h4{ font-size:14px; font-weight:800; line-height:1.3; }
+.float-card p{ font-size:10px; color:var(--muted); line-height:1.4; }
+
+/* ستون متن: چون تصویر بالا را گرفت، خودش پدینگ عمودی می‌گیرد */
+.hero-copy{ padding-block:40px; }
+.hero-copy h1{ font-size:clamp(26px, 3.6vw, 38px); font-weight:800; line-height:1.6; margin-bottom:16px; }
+.hero-copy h1 .heart{ color:var(--orange); }
+.hero-copy p{ color:var(--muted); font-size:14px; max-width:440px; margin-bottom:28px; }
+.hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+    /* ---------- ۶) نوار جستجو ---------- */
+    .search-bar-section{ margin-top:-44px; position:relative; z-index:10; padding-bottom:64px; }
+    .search-bar{ background:#fff; border-radius:24px; padding:12px; box-shadow:0 20px 40px rgba(70,90,70,.15); display:flex; align-items:center; gap:8px; }
+    .search-field{ flex:1; display:flex; flex-direction:column; padding:8px 16px; border-left:1px solid var(--line); }
+    .search-field:last-of-type{ border-left:none; }
+    .search-field label{ font-size:11px; color:var(--muted); font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+    .search-field label svg{ width:14px; height:14px; color:var(--sage); }
+    .search-field input, .search-field select{ border:none; outline:none; background:transparent; font-family:inherit; font-size:14px; font-weight:700; color:var(--ink); width:100%; cursor:pointer; }
+    .search-bar .btn{ padding:16px 32px; font-size:15px; }
+
+    /* ---------- ۷) چرا هاپ‌گو ---------- */
+    .features{ padding:40px 0 80px; }
+    .section-title{ text-align:center; font-size:clamp(22px, 3vw, 28px); font-weight:800; margin-bottom:48px; }
+    .features-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:24px; padding-right: 20%; }
+    .feature-card{ text-align:center; padding:20px; }
+    .feature-icon{ width:64px; height:64px; border-radius:50%; background:var(--sage-soft); display:grid; place-items:center; margin:0 auto 16px; color:var(--sage-dark); transition:transform .3s; }
+    .feature-card:hover .feature-icon{ transform:translateY(-5px); }
+    .feature-icon svg{ width:28px; height:28px; }
+    .feature-card h3{ font-size:16px; font-weight:800; margin-bottom:8px; }
+    .feature-card p{ font-size:13px; color:var(--muted); }
+
+    /* ---------- ۸) چگونه کار می‌کند ---------- */
+    .how{ padding:60px 0; background:#fff; border-radius:40px; margin-bottom:60px; }
+    .steps{ display:grid; grid-template-columns:1fr 60px 1fr 60px 1fr; gap:16px; max-width:900px; margin-inline:auto; align-items:start; }
+    .step{ text-align:center; }
+    .step-icon{ width:72px; height:72px; border-radius:50%; background:var(--cream); display:grid; place-items:center; margin:0 auto 16px; color:var(--sage-dark); }
+    .step-icon.peach{ background:var(--peach); color:var(--orange); }
+    .step-icon svg{ width:32px; height:32px; }
+    .step h3{ font-size:16px; font-weight:800; margin-bottom:8px; }
+    .step p{ font-size:13px; color:var(--muted); }
+    .connector{ border-top:2px dashed var(--line); margin-top:36px; position:relative; }
+    .connector::after{ content:""; position:absolute; left:-4px; top:-6px; width:8px; height:8px; border-top:2px solid var(--line); border-right:2px solid var(--line); transform:rotate(225deg); }
+
+    /* ---------- ۹) تجربه بهتر + موکاپ موبایل ---------- */
+    .app-showcase{ padding:60px 0; }
+    /* کانتینر تصاویر بخش «تجربه‌ای بهتر برای تو و سگت» */
+.showcase-media {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 24px; /* جا برای بیرون‌زدگی عکس کوچک */
+}
+
+/* تصویر بزرگ */
+.showcase-main {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 24px;
+
+  /* حذف سفیدی پس‌زمینهٔ عکس:
+     رنگ‌های روشن/سفید عکس با پس‌زمینهٔ بخش ترکیب می‌شوند */
+  mix-blend-mode: multiply;
+  background: transparent;
+}
+
+/* تصویر کوچک — پایین سمت راست */
+.showcase-thumb {
+  position: absolute;
+  bottom: -16px;
+  right: -66px;
+
+  width: 42%;
+  max-width: 180px;
+  height: auto;
+
+  border-radius: 16px;
+  border: 4px solid #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
+
+  mix-blend-mode: multiply; /* اگر این عکس هم پس‌زمینه سفید دارد */
+}
+    .showcase-inner{ display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; }
+    .showcase-copy h2{ font-size:28px; font-weight:800; margin-bottom:24px; }
+    .showcase-list{ list-style:none; display:grid; gap:16px; }
+    .showcase-list li{ display:flex; align-items:center; gap:12px; font-size:15px; font-weight:600; }
+    .showcase-list .check{ width:24px; height:24px; border-radius:50%; background:var(--sage-soft); color:var(--sage-dark); display:grid; place-items:center; flex-shrink:0; }
+    .showcase-list .check svg{ width:14px; height:14px; }
+
+    .phone-mockup{ width:300px; height:600px; background:#fff; border-radius:40px; border:12px solid #1a1a1a; margin-inline:auto; position:relative; box-shadow:0 24px 48px rgba(0,0,0,.2); overflow:hidden; display:flex; flex-direction:column; }
+    .phone-notch{ position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:24px; background:#1a1a1a; border-bottom-left-radius:16px; border-bottom-right-radius:16px; z-index:10; }
+    .phone-screen{ flex:1; background:var(--cream); padding:40px 16px 0; display:flex; flex-direction:column; gap:14px; overflow-y:auto; }
+    .phone-header{ text-align:center; margin-bottom:4px; }
+    .phone-header h4{ font-size:16px; font-weight:800; }
+    .phone-header p{ font-size:12px; color:var(--muted); }
+    .phone-card{ background:#fff; border-radius:16px; padding:12px; box-shadow:0 4px 12px rgba(0,0,0,.05); }
+    .phone-card img{ width:100%; height:120px; object-fit:cover; border-radius:12px; margin-bottom:12px; }
+    .phone-card h5{ font-size:14px; font-weight:800; margin-bottom:4px; }
+    .phone-card p{ font-size:11px; color:var(--muted); margin-bottom:12px; }
+    .phone-card .btn{ width:100%; padding:10px; font-size:12px; }
+    .report-row{ display:flex; gap:10px; align-items:center; }
+    .report-row img{ width:56px; height:56px; object-fit:cover; border-radius:12px; flex-shrink:0; }
+    .report-meta{ font-size:11px; color:var(--muted); }
+    .report-meta .done{ color:var(--sage-dark); font-weight:700; display:flex; align-items:center; gap:4px; margin-top:4px; }
+    .report-meta .done svg{ width:13px; height:13px; }
+    .phone-nav{ display:flex; justify-content:space-around; padding:12px 0; border-top:1px solid var(--line); background:#fff; margin-top:auto; }
+    .phone-nav svg{ width:20px; height:20px; color:var(--muted); }
+    .phone-nav svg.active{ color:var(--orange); }
+
+    /* ---------- ۱۰) نظرات ---------- */
+    .testimonials{ padding:60px 0; }
+    .t-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+    .t-card{ background:#fff; border-radius:24px; padding:24px; box-shadow:var(--shadow); }
+    .stars{ color:#f2b04a; font-size:14px; letter-spacing:2px; margin-bottom:12px; }
+    .t-card p{ font-size:14px; color:var(--muted); margin-bottom:20px; }
+    .t-foot{ display:flex; align-items:center; gap:12px; }
+    .t-foot img{ width:48px; height:48px; border-radius:50%; object-fit:cover; }
+    .t-foot .name{ font-size:14px; font-weight:800; }
+
+    /* ---------- ۱۱) نوار اعداد ---------- */
+    .numbers{ background:var(--sage-soft); border-radius:32px; padding:40px 24px; display:grid; grid-template-columns:repeat(4, 1fr); text-align:center; gap:16px; margin-bottom:80px; }
+    .num h3{ font-size:28px; font-weight:800; color:var(--sage-dark); margin-bottom:4px; }
+    .num p{ font-size:13px; color:var(--muted); font-weight:600; }
+
+    /* ---------- ۱۲) سوالات متداول ---------- */
+    .faq{ padding:60px 0; }
+    .faq-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    details{ background:#fff; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,.03); padding:16px 20px; margin-bottom:16px; border:1px solid var(--line); }
+    summary{ list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:700; gap:12px; }
+    summary::-webkit-details-marker{ display:none; }
+    summary::after{ content:""; width:10px; height:10px; flex-shrink:0; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg); transition:transform .25s ease; }
+    details[open] summary::after{ transform:rotate(225deg); border-color:var(--sage-dark); }
+    details p{ font-size:14px; color:var(--muted); margin-top:12px; line-height:1.8; }
+
+    /* ---------- ۱۳) بنر CTA ---------- */
+      /* ---------- ۱۳) بنر CTA (نسخهٔ تمام‌تصویر) ---------- */
+    .cta{ padding:60px 0; }
+
+    .cta-banner{
+      display:block;
+      width:100%;
+      height:auto;              /* ← ارتفاع کوتاه‌تر (قبلاً auto بود) */
+      object-fit:cover;          /* به‌جای کشیدن تصویر، اضافه‌ها را کراپ می‌کند */
+      object-position:center;    /* قسمتِ نگه‌داشته‌شده = مرکز تصویر */
+      border-radius:32px;
+      box-shadow:var(--shadow);
+    }
+
+    /* ---------- ۱۴) فوتر ---------- */
+    footer{ background:#fff; padding:60px 0 24px; border-top:1px solid var(--line); }
+    .footer-grid{ display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr 1fr; gap:32px; margin-bottom:40px; }
+    .f-col h4{ font-size:14px; font-weight:800; margin-bottom:16px; color:var(--ink); }
+    .f-col a{ display:block; font-size:13px; color:var(--muted); margin-bottom:12px; transition:.2s; }
+    .f-col a:hover{ color:var(--sage-dark); }
+    .f-brand p{ font-size:13px; color:var(--muted); margin:12px 0 20px; max-width:250px; }
+    .socials{ display:flex; gap:10px; }
+    .socials a{ width:36px; height:36px; border-radius:50%; background:var(--cream); display:grid; place-items:center; color:var(--muted); transition:.25s; }
+    .socials a:hover{ color:#fff; background:var(--sage); transform:translateY(-2px); }
+    .socials svg{ width:16px; height:16px; }
+    .footer-bottom{ border-top:1px solid var(--line); padding-top:24px; text-align:center; font-size:12px; color:var(--muted); }
+
+    /* ---------- ۱۵) ریسپانسیو ---------- */
+    @media (max-width:960px){
+      .header-inner{ height:64px; }
+      .brand{ order:-1; }
+      .hamburger{ display:grid; margin-inline-start:auto; }
+      .nav{ position:absolute; top:64px; inset-inline:0; background:#fff; display:none; flex-direction:column; padding:12px 24px; box-shadow:var(--shadow); }
+      .nav a{ padding:12px 0; border-bottom:1px dashed var(--line); }
+      .menu-toggle:checked ~ .nav{ display:flex; }
+
+      .hero-inner{ grid-template-columns:1fr; gap:32px; }
+      .hero-copy{ order:2; text-align:center; }            /* متن زیر تصویر در موبایل */
+      .hero-media-wrapper{ margin-right:0; }        /* bleed فقط برای دسکتاپ */
+      .hero-media-wrapper > img{ height:380px; }
+      .hero-copy{ padding-block:0; text-align:center; }
+      .hero-copy p{ margin-inline:auto; }
+      .hero-actions{ justify-content:center; }
+
+      .float-card{ min-width:auto; flex:1 1 45%; }      
+      
+      .search-bar{ flex-direction:column; padding:16px; gap:16px; }
+      .search-field{ width:100%; border-left:none; border-bottom:1px solid var(--line); padding:8px 0; }
+      .search-field:last-of-type{ border-bottom:none; }
+      .search-bar .btn{ width:100%; }
+
+      .features-grid{ grid-template-columns:repeat(2, 1fr); }
+      .steps{ grid-template-columns:1fr; gap:32px; }
+      .connector{ display:none; }
+
+      .showcase-inner{ grid-template-columns:1fr; text-align:center; }
+      .showcase-list{ text-align:right; max-width:420px; margin-inline:auto; }
+
+      .t-grid{ grid-template-columns:1fr; }
+      .numbers{ grid-template-columns:repeat(2, 1fr); gap:32px; }
+      .faq-grid{ grid-template-columns:1fr; }
+
+      .footer-grid{ grid-template-columns:1fr 1fr; }
+      .f-brand{ grid-column:1 / -1; }
+    }
+
+    @media (max-width:560px){
+      .features-grid{ grid-template-columns:1fr; }
+      .numbers{ grid-template-columns:1fr; }
+      .footer-grid{ grid-template-columns:1fr; text-align:center; }
+      .socials{ justify-content:center; }
+      .f-brand p{ margin-inline:auto; }
+    }
+    @media (max-width: 480px) {
+            .brand-logo {
+              height: 30px;
+            }
+}
+    @media (max-width:700px){
+  .cta-banner{ height:180px; border-radius:24px; }
+}
+  </style>
+</head>
+<body>
+
+  <!-- ================= هدر ================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="auth">
+        <a href="#" class="btn btn-primary">ثبت‌نام</a>
+        <a href="#" class="btn btn-ghost">ورود</a>
+      </div>
+      <input type="checkbox" id="menu-toggle" class="menu-toggle">
+      <label for="menu-toggle" class="hamburger" aria-label="منو"></label>
+      <nav class="nav">
+        <a href="#">چرا هاپ‌گو؟</a>
+        <a href="#">داگ واکرها</a>
+        <a href="#">درباره ما</a>
+        <a href="#">منابع</a>
+      </nav>
+      <div class="f-col f-brand">
+        <a href="#" class="brand">
+          <img src="{% static 'img/hopgo-logo.png' %}" alt="HopGo" class="brand-logo">
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= هیرو ================= -->
+    <section class="hero">
+      <div class="container hero-inner">
+
+        <!-- ستون راست: تصویر + چهار کارت سفید -->
+        <div class="hero-media-wrapper">
+          <img src="{% static 'img/men-walking-with-dog.jpeg' %}" alt="قدم زدن با سگ گلدن رتریور">
+
+          <div class="floating-stats">
+            <div class="float-card">
+              <div class="ic" style="background:var(--peach); color:var(--orange);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div><h4>۴.۹ از ۵</h4><p>امتیاز کاربران</p></div>
+            </div>
+
+            <div class="float-card">
+              <div class="ic" style="background:var(--sage-soft); color:var(--sage-dark);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11.5 2 2 4-4"/></svg>
+              </div>
+              <div><h4>تأیید شده</h4><p>احراز هویت کامل</p></div>
+            </div>
+
+            <div class="float-card">
+              <div class="ic" style="background:var(--sage-soft); color:var(--sage-dark);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div><h4>پرداخت امن</h4><p>تراکنش‌های رمزنگاری شده</p></div>
+            </div>
+
+            <div class="float-card">
+              <div class="ic" style="background:var(--sage-soft); color:var(--sage-dark);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div><h4>هزاران مراقبت موفق</h4><p>نمره‌ای که می‌توانید اعتماد کنید</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ستون چپ: متن -->
+        <div class="hero-copy">
+          <h1>مراقب قابل اعتماد برای سگت، فقط چند دقیقه با تو فاصله داره </h1>
+          <p>داگ واکرهای تایید شده در نزدیکی تو. رزرو آنلاین سریع و پرداخت امن برای آرامش خاطر تو و شادی سگت.</p>
+          <div class="hero-actions">
+            <a href="#" class="btn btn-orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              یافتن داگ واکر
+            </a>
+            <a href="#" class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              رزرو اولین مراقبت
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= نوار جستجو ================= -->
+    <section class="search-bar-section">
+      <div class="container">
+        <div class="search-bar">
+          <div class="search-field">
+            <label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> موقعیت مکانی</label>
+            <input type="text" value="تهران، ونک">
+          </div>
+          <div class="search-field">
+            <label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4v16"/><path d="M17 4v16"/><path d="M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/></svg> نوع سرویس</label>
+            <select><option>پیاده‌روی</option><option>نگهداری در منزل</option></select>
+          </div>
+          <div class="search-field">
+            <label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> تاریخ</label>
+            <input type="text" placeholder="انتخاب تاریخ">
+          </div>
+          <button class="btn btn-primary">پیدا کردن واکر</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= چرا هاپ‌گو ================= -->
+    <section class="features container">
+      <h2 class="section-title">چرا هاپ‌گو انتخاب مطمئنی است؟</h2>
+      <div class="features-grid" >
+        <div class="feature-card">
+          <div class="feature-icon" ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
+          <h3>پشتیبانی سریع</h3><p>تیم پشتیبانی ما همیشه کنار شماست.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h3>رزرو آسان و سریع</h3><p>در چند دقیقه رزرو کنید و برنامه روزانه‌تان را ساده کنید.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11.5 2 2 4-4"/></svg></div>
+          <h3>احراز هویت دقیق</h3><p>همه داگ واکرها به دقت بررسی و تایید می‌شوند.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= چگونه کار می‌کند ================= -->
+    <section class="how container">
+      <h2 class="section-title">چگونه کار می‌کند؟</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+          <h3>۱. جستجو و انتخاب</h3><p>داگ واکرهای تایید شده در نزدیکی خود را پیدا کنید.</p>
+        </div>
+        <div class="connector"></div>
+        <div class="step">
+          <div class="step-icon peach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h3>۲. رزرو و پرداخت</h3><p>زمان دلخواهتان را انتخاب کنید و به صورت امن پرداخت کنید.</p>
+        </div>
+        <div class="connector"></div>
+        <div class="step">
+          <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg></div>
+          <h3>۳. پیاده‌روی و گزارش</h3><p>سگ شما پیاده‌روی لذت‌بخشی خواهد داشت و شما گزارش کامل دریافت می‌کنید.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= تجربه بهتر + موکاپ ================= -->
+    <section class="app-showcase container">
+      <div class="showcase-inner">
+        <div class="showcase-copy">
+          <h2>تجربه‌ای بهتر برای تو و سگت</h2>
+          <ul class="showcase-list">
+            <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> داگ واکرهای مورد اعتماد و امتیازدار</li>
+            <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> گزارش لحظه‌ای با عکس و موقعیت</li>
+            <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> برنامه‌ریزی منظم و انعطاف‌پذیر</li>
+            <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> لغو رایگان تا قبل از شروع سرویس</li>
+          </ul>
+        </div>
+
+        <div class="showcase-media">
+  <!-- تصویر بزرگ -->
+  <img src="{% static 'img/app.jpg' %}" alt="اپلیکیشن هاپ‌گو" class="showcase-main">
+
+  <!-- تصویر کوچک کنار تصویر بزرگ -->
+  <img src="{% static 'img/app-2.jpeg' %}" alt="" class="showcase-thumb">
+</div>
+    </section>
+
+    <!-- ================= نظرات ================= -->
+    <section class="testimonials container">
+      <h2 class="section-title">آنچه صاحبان سگ می‌گویند</h2>
+      <div class="t-grid">
+        <div class="t-card">
+          <div class="stars">★★★★★</div>
+          <p>پشتیبانی سریع و واکرهای قابل اعتماد. دقیقاً چیزی که نیاز داشتم.</p>
+          <div class="t-foot"><img src="{% static 'img/girl-1.png' %}" alt="سارا"><div class="name">سارا و ماکس</div></div>
+        </div>
+        <div class="t-card">
+          <div class="stars">★★★★★</div>
+          <p>گزارش‌های عالی و خیالم راحته که سگم در بهترین دست‌هاست.</p>
+          <div class="t-foot"><img src="{% static 'img/girl-4.png' %}" alt="زینب"><div class="name">زینب و رکس</div></div>
+        </div>
+        <div class="t-card">
+          <div class="stars">★★★★★</div>
+          <p>هاپگو زندگی من و سگم رو راحت‌تر کرده! واکرها حرفه‌ای و مهربون هستن.</p>
+          <div class="t-foot"><img src="{% static 'img/girl-5.png' %}" alt="مینا"><div class="name">مینا و لونا</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= نوار اعداد ================= -->
+    <section class="container">
+      <div class="numbers">
+        <div class="num"><h3>۴.۹/۵</h3><p>میانگین امتیاز</p></div>
+        <div class="num"><h3>۹۸٪</h3><p>رضایت مشتریان</p></div>
+        <div class="num"><h3>۱۰K+</h3><p>داگ واکر فعال</p></div>
+        <div class="num"><h3>۵۰K+</h3><p>مراقبت موفق</p></div>
+      </div>
+    </section>
+
+    <!-- ================= سوالات متداول ================= -->
+    <section class="faq container">
+      <h2 class="section-title">سوالات متداول</h2>
+      <div class="faq-grid">
+        <div>
+          <details open><summary>آیا پرداخت‌ها امن است؟</summary><p>بله، تمام تراکنش‌ها رمزنگاری شده و با درگاه امن انجام می‌شوند.</p></details>
+          <details><summary>اگر از سرویس راضی نباشم چه می‌شود؟</summary><p>تضمین رضایت داریم؛ پشتیبانی ۲۴/۷ مشکل شما را پیگیری می‌کند.</p></details>
+                    <details><summary>تفاوت داگ واکر و پت سیتر چیست؟ </summary>
+            <p>داگ واکر روی پیاده‌روی و فعالیت بدنی سگ تمرکز دارد، در حالی که پت سیتر مسئول مراقبت کلی از حیوان خانگی در غیاب صاحب آن است.
+اگر فقط به پیاده‌روی روزانه سگ نیاز دارید، داگ واکر گزینه مناسبی است. اما اگر برای چند ساعت یا چند روز در منزل حضور ندارید و حیوان به مراقبت کامل نیاز دارد، بهتر است از خدمات پت سیتر استفاده کنید.
+            </p>
+          </details>
+          <details><summary>سرویس نگهداری روزانه سگ برای چه سگ‌هایی مناسب است؟</summary>
+            <p>این سرویس برای سگ‌هایی مناسب است که:
+
+ساعات طولانی در خانه تنها می‌مانند.<br/>
+
+نیاز به فعالیت و بازی روزانه دارند.<br/>
+
+در زمان نبود صاحب خود دچار اضطراب یا بی‌قراری می‌شوند.<br/>
+
+به تعامل اجتماعی و سرگرمی بیشتر نیاز دارند.<br/>
+</p>
+          </details>
+          <details><summary>آیا داگ واکر یا پت سیتر قبل از شروع سرویس احراز هویت می‌شوند؟</summary>
+            <p>بله. برای افزایش امنیت و اعتماد، اطلاعات هویتی، راه‌های ارتباطی و سوابق لازم از داگ واکرها و پت سیترها دریافت و بررسی می‌شود تا صاحبان حیوانات خانگی با اطمینان بیشتری از خدمات استفاده کنند.</p>
+          </details>
+          
+        </div>
+        <div>
+          <details><summary>چگونه داگ واکرها احراز هویت می‌شوند؟</summary><p>بررسی هویت، مصاحبه و تایید مدارک به‌صورت کامل انجام می‌شود.</p></details>
+          <details><summary>چگونه می‌توانم رزرو خود را لغو کنم؟</summary><p>تا قبل از شروع سرویس، لغو کاملاً رایگان و از داخل اپلیکیشن انجام می‌شود.</p></details>
+          <details><summary> داگ واکر (Dog Walker) چیست؟</summary>
+            <p>داگ واکر فردی است که مسئول پیاده‌روی و همراهی سگ شما در زمان‌هایی است که فرصت کافی برای بیرون بردن حیوان خانگی خود را ندارید.
+داگ واکر سگ را طبق زمان‌بندی مشخص از شما تحویل می‌گیرد، او را برای پیاده‌روی و فعالیت بدنی به بیرون می‌برد و پس از پایان سرویس به شما تحویل می‌دهد. پیاده‌روی منظم به حفظ سلامت جسمی و روحی سگ کمک می‌کند و باعث تخلیه انرژی، کاهش استرس و بهبود رفتار حیوان می‌شود.</p>
+          </details>
+          <details><summary>پت سیتر (Pet Sitter) چیست؟</summary>
+            <p>پت سیتر فردی است که در غیاب شما از حیوان خانگی‌تان مراقبت می‌کند.
+این خدمات می‌تواند شامل غذا دادن، تعویض آب، بازی کردن، همراهی حیوان، مصرف داروهای تجویزشده و رسیدگی به نیازهای روزانه حیوان باشد. پت سیتر ممکن است در منزل شما حضور پیدا کند یا در برخی موارد حیوان را در محل نگهداری خود مراقبت کند.س</p>
+          </details>
+          <details><summary> چگونه مناسب‌ترین داگ واکر یا پت سیتر را انتخاب کنم؟</summary>
+            <p>می‌توانید بر اساس سابقه، امتیاز کاربران، نظرات مشتریان قبلی، محدوده فعالیت، تجربه کاری و نوع خدمات ارائه‌شده، فرد مناسب برای حیوان خانگی خود را انتخاب کنید. هرچه اطلاعات پروفایل کامل‌تر باشد، تصمیم‌گیری آسان‌تر خواهد بود.</p>
+          </details>
+                    <details><summary>سرویس نگهداری روزانه سگ (Doggy Day Care) چیست؟</summary>
+            <p>نگهداری روزانه سگ یا Doggy Day Care سرویسی است که در آن سگ شما برای چند ساعت یا یک روز کامل تحت مراقبت قرار می‌گیرد.
+این سرویس برای افرادی مناسب است که در طول روز به دلیل کار، سفرهای کوتاه یا مشغله‌های شخصی نمی‌توانند در کنار حیوان خانگی خود باشند. در این مدت سگ در محیطی امن تحت نظارت قرار می‌گیرد، بازی می‌کند، استراحت می‌کند و در صورت نیاز برای پیاده‌روی نیز برده می‌شود.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= بنر CTA ================= -->
+    <section class="container">
+      
+        <a href="#" class="btn btn-white">
+                  <img src="{% static 'img/banner-2.jpg' %}" alt="توله‌سگ خوشحال" loading="lazy">
+
+        </a>
+    </section>
+  </main>
+
+  <!-- ================= فوتر ================= -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="f-col f-brand">
+        <a href="#" class="brand">
+          <img src="{% static 'img/hopgo-logo.png' %}" alt="HopGo" class="brand-logo">
+      </a>
+          <p>هاپگو پلتفرم معتبر برای اتصال صاحبان سگ به داگ واکرهای مورد اعتماد و عاشق حیوانات.</p>
+          <div class="socials">
+            <a href="#" aria-label="اینستاگرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+            <a href="#" aria-label="تلگرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></a>
+            <a href="#" aria-label="توییتر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7 7 0 0 0 23 3z"/></svg></a>
+            <a href="#" aria-label="واتساپ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+          </div>
+        </div>
+        <div class="f-col"><h4>قانونی</h4><a href="#">حریم خصوصی</a><a href="#">شرایط استفاده</a><a href="#">سیاست بازپرداخت</a></div>
+        <div class="f-col"><h4>پشتیبانی</h4><a href="#">مرکز کمک</a><a href="#">ایمنی و امنیت</a><a href="#">سوالات متداول</a></div>
+        <div class="f-col"><h4>شرکت</h4><a href="#">درباره ما</a><a href="#">وبلاگ</a><a href="#">فرصت‌های شغلی</a><a href="#">تماس با ما</a></div>
+        <div class="f-col"><h4>محصول</h4><a href="#">یافتن داگ واکر</a><a href="#">خدمات</a><a href="#">اپلیکیشن موبایل</a><a href="#">قیمت گذاری</a></div>
+      </div>
+      <div class="footer-bottom">© 2024 HopGo — تمامی حقوق محفوظ است.</div>
+    </div>
+  </footer>
+
+</body>
+</html>

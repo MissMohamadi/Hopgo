@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+
+{% block content %}
+<p>{% trans "Email Verification was successful,please login to your account and enjoy" %}</p>
+
+
+<!-- Login -->
+<div class="auth-home">
+    <div id="particle-js"><canvas class="particles-js-canvas-el" width="1912" height="1062"
+            style="width: 100%; height: 100%;"></canvas></div>
+    <div class="auth-form-wrapper justify-content-center">
+
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="auth-wrap p-4 p-md-5">
+
+
+                    <div class="col-12 text-center mt-1">
+                        <h1>تایید هویت ناموفق</h1>
+                        <hr>
+                    </div>
+                    <div class="col-12">
+                        <p>تایید هویت شما شسکت خورد لطفا مجددا برای تایید هویت اقدام نمایید</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<script src="{% static 'plugins/particles-js-master/particles.js' %}"></script>
+<script>
+    particlesJS.load('particle-js', "{% static 'plugins/particles-js-master/particles.json' %}");
+</script>
+
+{% endblock extra_css %}

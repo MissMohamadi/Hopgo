@@ -1,0 +1,211 @@
+{% extends 'dashboard/admin/base.html' %}
+{% load static %}
+{% load dashboard_tags %}
+
+
+
+
+{% block extra_css_no_compress %}
+<link rel="stylesheet" href="{% static 'vendor/jalalidatepicker/jalalidatepicker.min.css' %}">
+<link href="{% static 'vendor/tagify/tagify.min.css' %}" rel="stylesheet" type="text/css" />
+
+<style>
+    .tagify__tag {
+        margin-right: 5px;
+        margin-left: 5px;
+
+    }
+
+    .tagify--focus {
+        background-color: rgb(255, 255, 255);
+
+    }
+
+    .tagify__input {
+        color: black;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card border bg-transparent rounded-3">
+    <!-- Card header START -->
+    <div class="card-header bg-transparent border-bottom">
+        <h4 class="fs-5 ff-vb"> ویرایش پست - شناسه {{object.pk}} </h4>
+    </div>
+    <div class="card-body">
+        <!-- Step content START -->
+        <div class="bs-stepper-content">
+            <form action="{% url 'dashboard:admin:post-edit' pk=object.pk %}" method="post" id="post-form"
+                enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- Step 1 content START -->
+                <div class="content">
+
+
+                    <!-- Basic information START -->
+                    <div class="row g-4">
+                        <!-- Post title -->
+                        <div class="col-12">
+                            <label class="form-label">عنوان</label>
+                            {{form.title}}
+                        </div>
+
+                        <!-- Short description -->
+                        <div class="col-12">
+                            <label class="form-label">slug - <button class="btn btn-sm btn-primary-soft" type="button"
+                                    onclick="generateSlug()">Generate
+                                    Slug</button></label>
+                            {{form.slug}}
+                        </div>
+
+                        <!-- Post category -->
+                        <div class="col-md-4">
+                            <label class="form-label">دسته بندی</label>
+                            {{form.category}}
+                        </div>
+
+
+
+                        <!-- Post status -->
+                        <div class="col-md-4">
+                            <label class="form-label">وضعیت</label>
+                            {{form.status}}
+                        </div>
+
+                        <!-- Post published_date -->
+                        <div class="col-md-4">
+                            <label class="form-label">تاریخ انتشار</label>
+                            <div class="input-group mb-3">
+                                <input data-jdp class="form-control" name="published_jdate"
+                                    value="{{ object.published_date|jalali_time:" %Y/%m/%d "}}">
+                                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                            </div>
+                        </div>
+
+
+                        <!-- Post image_alt -->
+                        <div class="col-md-6">
+                            <label class="form-label">توضیح تصویر</label>
+                            {{form.image_alt}}
+                        </div>
+                        <!-- Post image -->
+                        <div class="col-md-6">
+                            <label class="form-label">تصویر بنر</label>
+                            <div class="d-flex justify-content-between">
+                                <input type="file" name="image" class="form-control mx-1" accept="image/*">
+                                <button class="btn btn-light mx-1" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#imageModal"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+
+
+
+
+                        <!-- Post description -->
+                        <div class="col-12">
+                            <label class="form-label">توضیحات</label>
+                            {{form.content}}
+                        </div>
+                        <!-- Tags START -->
+                        <div class="col-12">
+                            <div class=" ">
+                                <label class="mb-0">برچسب ها</label>
+                                <!-- Comment -->
+                                <div class="mt-3">
+                                    <input type="text" class="form-control" name="tags">
+                                    <span class="small">حداکثر 15 کلمه و هر کلمه را با کاما جدا کنید</span>
+                                </div>
+                            </div>
+                        </div>
+         
+                        <!-- Tags START -->
+                        <!-- button -->
+                        <div class="d-flex justify-content-between mt-3">
+                            <div>
+                                <button type="submit" class="btn btn-primary-soft mx-1 mb-0">ثبت تغییرات</button>
+                                <a href="{% url 'dashboard:admin:post-list' %}"
+                                    class="btn btn-secondary-soft mx-1 mb-0">بازگشت</a>
+                                <a href="{% url 'dashboard:admin:post-detail' pk=object.pk %}" target="_blank"
+                                    class="btn btn-warning-soft mx-1 mb-0">پیشنمایش</a>
+                            </div>
+                            <div>
+                                <a href="{% url 'dashboard:admin:post-delete' pk=object.pk %}"
+                                    class="btn btn-danger-soft mx-1 mb-0">حذف پست</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Basic information START -->
+                </div>
+                <!--  content END -->
+
+
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="imageModalLabel">تصویر فعلی</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img src="{{ object.image.url }}" />
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/tagify/tagify.polyfills.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/jalalidatepicker/jalalidatepicker.min.js' %}"></script>
+
+
+<script>
+    jalaliDatepicker.startWatch();
+</script>
+
+<script>
+    let initialTags = `{% for tag  in object.tag.all %} {{tag.title}} {% if not forloop.last %},{% endif %} {% endfor %}`.split(",")
+    var input = document.querySelector('input[name="tags"]');
+    var tagify = new Tagify(input);
+    initialTags.forEach(function (tag) {
+        tagify.addTags([tag]);
+    });
+    ;
+</script>
+
+<script>
+
+    function generateSlug() {
+        const title = document.getElementById("id_title").value;
+        const slug = slugify(title);
+        document.getElementById("id_slug").value = slug;
+    }
+
+
+</script>
+
+<script>
+function copyShortURL(id) {
+    const input = document.getElementById(`short-url-${id}`);
+    navigator.clipboard.writeText(input.value)
+        .then(() => {
+            // Optional: show a temporary tooltip or change button text
+            const btn = input.nextElementSibling;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+            setTimeout(() => btn.innerHTML = original, 1500);
+        })
+        .catch(err => console.error('Failed to copy:', err));
+}
+</script>
+{% endblock %}

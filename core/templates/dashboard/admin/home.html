@@ -1,0 +1,62 @@
+{% extends './base.html' %}
+{% load static %}
+
+{% load dashboard_tags %}
+
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block content %}
+
+<!-- Counter boxes START -->
+<div class="row mb-4">
+    <!-- Counter item -->
+    <div class="col-sm-6 col-lg-4 mb-3 mb-lg-3">
+        <div class="d-flex justify-content-center align-items-center p-4 bg-orange bg-opacity-15 rounded-3">
+            <span class="display-6 lh-1 text-orange mb-0"><i class="fas fa-user "></i></span>
+            <div class="ms-4">
+                <div class="d-flex">
+                    <h5 class="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="{% count_users %}" data-purecounter-delay="200">{% count_users %}</h5>
+                </div>
+                <p class="mb-0 h6 fw-light">کاربر ها</p>
+            </div>
+        </div>
+    </div>
+    <!-- Counter item -->
+    <div class="col-sm-6 col-lg-4 mb-3 mb-lg-3">
+        <div class="d-flex justify-content-center align-items-center p-4 bg-purple bg-opacity-15 rounded-3">
+            <span class="display-6 lh-1 text-purple mb-0"><i class="fas fa-envelope fa-fw"></i></span>
+            <div class="ms-4">
+                <div class="d-flex">
+                    <h5 class="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="{% count_tickets %}" data-purecounter-delay="200">{% count_tickets %}</h5>
+                </div>
+                <p class="mb-0 h6 fw-light">تیکت ها</p>
+            </div>
+        </div>
+    </div>
+    <!-- Counter item -->
+    <div class="col-sm-6 col-lg-4 mb-3 mb-lg-3">
+        <div class="d-flex justify-content-center align-items-center p-4 bg-success bg-opacity-10 rounded-3">
+            <span class="display-6 lh-1 text-success mb-0"><i class="far fa-newspaper fa-fw"></i></span>
+            <div class="ms-4">
+                <div class="d-flex">
+                    <h5 class="purecounter mb-0 fw-bold" data-purecounter-start="0"
+                        data-purecounter-end="{% count_newsletters %}" data-purecounter-delay="300">{% count_newsletters
+                        %}</h5>
+                </div>
+                <p class="mb-0 h6 fw-light">خبرنامه ها</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Counter boxes END -->
+
+
+{% endblock content %}
+
+
+{% block extra_js_no_compress %}
+
+{% endblock %}

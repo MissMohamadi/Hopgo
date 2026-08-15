@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+
+{% endblock %}
+
+{% block content %}
+
+<section class="pt-5">
+	<div class="container">
+		<div class="row">
+			<div class="col-12 text-center">
+				<!-- Image -->
+				<img src="{% static 'images/element/error404-01.svg' %}" class="h-200px h-md-400px mb-4" alt="">
+				<!-- Title -->
+				<h1 class="display-1 text-danger mb-0">404</h1>
+				<!-- Subtitle -->
+				<h2>رفتی تو باقالیا!</h2>
+				<!-- info -->
+				<p class="mb-4">این صفحه دیگه نیست می خوای بری جای دیگه؟</p>
+				<p>
+					بزار برت گردونم صفحه اول تا <span id="timer">10</span> ثانیه دیگه
+				</p>
+				<!-- Button -->
+				<a href="{%  url 'website:index' %}" class="btn btn-primary mb-0">برگشت به صفحه اصلی</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+	var targetURL = "{% url 'website:index' %}"
+	var currentsecond = 10;
+	function countredirect() {
+		if (currentsecond != 1) {
+			currentsecond -= 1
+			document.getElementById('timer').innerText = currentsecond;
+		}
+		else {
+			window.location = targetURL;
+			return
+		}
+		setTimeout("countredirect()", 1000)
+	}
+	countredirect();
+</script>
+{% endblock %}
