@@ -21,10 +21,12 @@
       document.documentElement.classList.remove("dark");
     }
   </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
 </head>
 
 <body>
-
+    {% include "partials/toasts.html" %}
   <!-- ALL ICONS -->
   <svg class="hidden">
     <symbol id="moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
@@ -81,7 +83,7 @@
            
           <div>
             <label for="id_username" class="block text-sm/6 font-medium text-gray-500 dark:text-gray-300">
-              لطفا کدملی  خود را وارد کنید.
+              لطفا نام کاربری خود را وارد کنید.
             </label>
             <div class="mt-3">
               <input type="text" required
@@ -134,8 +136,6 @@
       </div>
     </div>
   </section>
-
-  <script src="{% static 'karin_template/scripts/app.js' %}"></script>
   
 </body>
 

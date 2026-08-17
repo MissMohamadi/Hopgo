@@ -401,3 +401,9 @@ if SENTRY_ENABLE == True:
 
 
 DISABLE_CACHE = config("DISABLE_CACHE",cast=bool, default=True)
+
+#send otp mode
+OTP_SEND_MODE = config(
+    "OTP_SEND_MODE",
+    default="console" if DEBUG else "smsir",
+)

@@ -17,12 +17,3 @@ def validate_minimum_size(width=None, height=None):
     return validator
 
 
-
-
-def validate_phone_number(value):
-    pattern = r'^\+?\d{1,3}[-\.\s]?\(?\d{3}\)?[-\.\s]?\d{3}[-\.\s]?\d{4}$'
-    if not re.match(pattern, value):
-        raise ValidationError(
-            _('شماره درج شده فرمت درستی ندارد'),
-            params={'value': value},
-        )

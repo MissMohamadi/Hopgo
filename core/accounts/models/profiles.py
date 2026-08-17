@@ -8,7 +8,9 @@ from django.contrib.auth import get_user_model
 from pilkit.processors import Thumbnail
 from imagekit.models import ImageSpecField
 from .validators import *
+from ..validators import validate_phone_number
 User = get_user_model()
+
 
 
 class ProfileModel(models.Model):

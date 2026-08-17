@@ -21,9 +21,12 @@
       document.documentElement.classList.remove("dark");
     }
   </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
 </head>
 
 <body>
+    {% include "partials/toasts.html" %}
 
   <!-- ALL ICONS -->
   <svg class="hidden">
@@ -68,7 +71,7 @@
         </button>
         <a href="{% url 'website:index' %}" class="flex flex-col text-center">
           <span class="font-MorabbaMedium text-4xl flex items-center">
-            <span class="text-blue-500">فی</span>دان
+            <span class="text-blue-500">Go</span>Hop
           </span>
         </a>
       </div>
@@ -88,27 +91,44 @@
               {% endfor %}
             </div>
           {% endif %}
-
-          <!-- National Id -->
+           <!-- User Name -->
           <div>
-            <label for="id_national_id" class="block text-sm/6 font-medium text-gray-500 dark:text-gray-300">
-              کد ملی
+            <label for="id_username" class="block text-sm/6 font-medium text-gray-500 dark:text-gray-300">
+              نام کاربری
             </label>
             <div class="mt-2">
               <input type="text" required
                 class="form-control block w-full p-3 text-base outline dark:outline-none outline-1 -outline-offset-1 placeholder:text-gray-400 sm:text-sm/6 transition-all
                 text-gray-800 dark:text-gray-100 dark:bg-gray-900 bg-slate-100 border border-transparent hover:border-slate-200 appearance-none rounded-md outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-blue-400
-                {% if form.national_id.errors %}border-red-500 focus:border-red-500 focus:ring-red-100{% endif %}"
-                id="id_national_id" 
-                name="national_id" 
-                value="{{ form.national_id.value|default:'' }}"
-                placeholder="کد ملی ۱۰ رقمی" 
+                {% if form.username.errors %}border-red-500 focus:border-red-500 focus:ring-red-100{% endif %}"
+                id="id_username" 
+                name="username" 
+                value="{{ form.username.value|default:'' }}"
                 dir="ltr" 
-                inputmode="numeric" 
-                maxlength="10"
-                autocomplete="off">
-              {% if form.national_id.errors %}
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.national_id.errors.0 }}</p>
+                inputmode="text" >
+                {% if form.username.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.username.errors.0 }}</p>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Email -->
+          <div>
+            <label for="id_email" class="block text-sm/6 font-medium text-gray-500 dark:text-gray-300">
+              ایمیل
+            </label>
+            <div class="mt-2">
+              <input type="email" required
+                class="form-control block w-full p-3 text-base outline dark:outline-none outline-1 -outline-offset-1 placeholder:text-gray-400 sm:text-sm/6 transition-all
+                text-gray-800 dark:text-gray-100 dark:bg-gray-900 bg-slate-100 border border-transparent hover:border-slate-200 appearance-none rounded-md outline-none focus:bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-blue-400
+                {% if form.email.errors %}border-red-500 focus:border-red-500 focus:ring-red-100{% endif %}"
+                id="id_email" 
+                name="email" 
+                value="{{ form.email.value|default:'' }}"
+                placeholder="****@gmail.com" 
+                dir="ltr" 
+                inputmode="email" >
+              {% if form.email.errors %}
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.email.errors.0 }}</p>
               {% endif %}
             </div>
           </div>

@@ -1,409 +1,377 @@
+# accounts/views.py
 from django.contrib.auth.forms import AuthenticationForm
-from django.forms.models import BaseModelForm
-from django.views import generic
-from django.views.generic import base
-from django.contrib.auth import views
-from django.urls import reverse_lazy, reverse
-from django.shortcuts import redirect,render
-from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth import get_user_model
-from ..forms import SignUpForm, LoginForm ,ForgottenPasswordForm
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
-from django.views import generic
-from django.urls import reverse_lazy
-from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import SetPasswordForm
-from ..forms import EmailLookupForm
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import get_user_model
+from django.views import generic
+from django.urls import reverse
+from django.shortcuts import redirect, render
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.core.cache import cache
 import logging
 
-from django.core.cache import cache
-from django.contrib.auth import login as auth_login
-
-from django.utils.crypto import get_random_string
-
-from ..forms import SendOtpForm
-from ..services import send_sms_ir_otp
+from ..forms import SendOtpForm, SignUpForm, LoginForm, ResetPasswordForm
+from ..services import generate_otp_code, send_otp_code
+from ..utils import get_user_by_phone, normalize_phone_number
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+MAX_OTP_ATTEMPTS = 5
+
+# ============================================================
+# ثبت‌نام و ورود
+# ============================================================
 
 class RegistrationView(generic.CreateView):
+    """ثبت‌نام کاربر با نام کاربری، ایمیل و رمز عبور"""
     template_name = 'accounts/signup.html'
     form_class = SignUpForm
     redirect_authenticated_user = True
-    success_url = reverse_lazy("accounts:login")
+
     def dispatch(self, request, *args, **kwargs):
         if self.redirect_authenticated_user and request.user.is_authenticated:
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(reverse('website:index'))
+
+        verified_phone = request.session.get("verified_phone")
+        self.verified_phone = normalize_phone_number(verified_phone) if verified_phone else ""
+
+        if not self.verified_phone:
+            messages.error(
+                request,
+                "ابتدا شماره موبایل خود را تایید کنید."
+            )
+            return redirect("accounts:send_otp")
+
+        # جلوگیری از ثبت‌نام مجدد با شماره‌ای که قبلاً ثبت شده
+        existing_user = get_user_by_phone(self.verified_phone)
+        if existing_user:
+            messages.error(
+                request,
+                "این شماره موبایل قبلاً ثبت شده است. لطفاً وارد شوید."
+            )
+            return redirect("accounts:send_otp")
+
         return super().dispatch(request, *args, **kwargs)
-    
-    print('2')
+
     def form_valid(self, form):
-        # ذخیره کاربر و دسترسی به آبجکت ساخته‌شده
         self.object = form.save()
-        print('3')
-        # پیام موفقیت با کد ملی ماسک‌شده
+         # ذخیره شماره موبایل تایید شده در مدل کاربر
+        self.object.phone_number = self.verified_phone
+
+        # اگر می‌خواهید کاربر بعد از ثبت‌نام حتماً verified باشد
+        self.object.is_verified = True
+
+        self.object.save()
+
+        # پاک کردن شماره از Session بعد از ثبت‌نام موفق
+        self.request.session.pop("verified_phone", None)
+        self.request.session.pop("otp_phone", None)
+        auth_login(
+            self.request,
+            self.object,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
         messages.success(
             self.request,
-            f'{self.object.masked_national_id} عزیز، ثبت نام شما با موفقیت انجام شد. حال می‌توانید وارد شوید.'
+            f'{self.object.username} عزیز، ثبت‌نام کامل شد؛ خوش آمدید! 👋'
         )
-        
-        
-        return HttpResponseRedirect(self.get_success_url())
+        return redirect(reverse('website:index'))
 
     def form_invalid(self, form):
-        # نمایش خطاها با messages
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(self.request, f"{error}")
-                print(f"error:{error}")
-            print('4')
-        return redirect(reverse_lazy("accounts:signup"))
-    
-class LoginView(views.LoginView):
+        logger.warning("Signup invalid: %s", form.errors)
+        return self.render_to_response(self.get_context_data(form=form))
+
+class LoginView(auth_views.LoginView):
+    """ورود با نام کاربری و رمز عبور"""
     template_name = 'accounts/login.html'
     form_class = LoginForm
     redirect_authenticated_user = True
 
     def form_valid(self, form: AuthenticationForm):
         user = form.get_user()
-        
-        # لاگ ماسک‌شده
-        print("✅ [DEBUG] لاگین موفق!")
-        print(f"👤 national_id: {user.masked_national_id}")
-        print(f"🔑 is_staff: {user.is_staff}")
-        
         response = super().form_valid(form)
-        
-        messages.success(
-            self.request,
-            f'{user.masked_national_id} عزیز، با موفقیت وارد شدید 👋'
-        )
-        
+        messages.success(self.request, f'{user.username} عزیز، با موفقیت وارد شدید 👋')
         if next_url := self.request.GET.get("next"):
             return redirect(next_url)
-        
         return response
 
     def form_invalid(self, form: AuthenticationForm):
-        print("❌ [DEBUG] لاگین شکست خورد!")
-        
-        # فقط کد ملی ماسک‌شده، رمز عبور اصلاً پرینت نشود
-        username = form.data.get("username", "")
-        if username and len(username) >= 5:
-            print(f"👤 national_id: {username[:3]}*****{username[-2:]}")
-        
-        print(f"⚠️ خطاهای فرم: {form.errors}")
+        logger.warning("Login invalid: %s", form.errors)
         return super().form_invalid(form)
-    
-class EmailVerificationSendView(generic.TemplateView):
-    template_name = 'accounts/email_verification_send.html'
-    redirect_authenticated_user = True
 
-    def dispatch(self, request, *args, **kwargs):
-        if self.redirect_authenticated_user and self.request.user.is_authenticated:
-            return HttpResponseRedirect('/')
-        return super().dispatch(request, *args, **kwargs)
-
-
-# def activate(request, uidb64, token):
-#     User = get_user_model()
-#     try:
-#         uid = force_str(urlsafe_base64_decode(uidb64))
-#         user = User.objects.get(pk=uid)
-#     except(TypeError, ValueError, OverflowError, User.DoesNotExist):
-#         user = None
-#     if user is not None and account_activation_token.check_token(user, token):
-#         user.is_active = True
-#         user.save()
-#         return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
-#     else:
-#         return HttpResponse('Activation link is invalid!')
-
-class AccountActivationView(base.TemplateResponseMixin, generic.View):
-    template_name = 'accounts/email_verification_check.html'
-    redirect_authenticated_user = True
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.redirect_authenticated_user and self.request.user.is_authenticated:
-            return HttpResponseRedirect('/')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        User = get_user_model()
-        try:
-            uid = force_text(urlsafe_base64_decode(kwargs["uidb64"]))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
-        if user is not None and default_token_generator.check_token(user, kwargs["token"]):
-            user.is_verified = True
-            user.save()
-            messages.success(request, "verification was successfully done")
-            return redirect(reverse("accounts:login"))
-        messages.error(request, "failed to verify user please try again")
-        return redirect(reverse("accounts:login"))
-
-
-class LogoutView(views.LogoutView):
+class LogoutView(auth_views.LogoutView):
     template_name = 'accounts/logged_out.html'
 
+# ============================================================
+# ارسال OTP (مرحله اول)
+# ============================================================
+class BaseOtpView(generic.FormView):
+    """کلاس پایه برای ارسال OTP - منطق مشترک بین ثبت‌نام و بازیابی رمز"""
+    template_name = None
+    form_class = SendOtpForm
+    otp_ttl = 120          
+    rate_limit_ttl = 60   
 
-class PasswordChangeView(views.PasswordChangeView):
-    template_name = 'accounts/password_change_form.html'
+    def get_otp_cache_key(self, phone):
+        return f"otp_{phone}"
 
+    def get_rate_limit_key(self, phone):
+        return f"otp_rate_{phone}"
 
-class PasswordChangeDoneView(views.PasswordChangeDoneView):
-    template_name = 'accounts/password_change_done.html'
+    def get_session_key(self):
+        raise NotImplementedError("Subclass باید get_session_key را override کند.")
 
+    def get_success_message(self):
+        return "کد تایید برای شماره موبایل شما ارسال شد."
 
-class PasswordResetView(views.PasswordResetView):
-    template_name = 'accounts/password_reset_form.html'
-    email_template_name = 'accounts/emails/password_reset_email.html'
-    success_url = reverse_lazy('accounts:password_reset_done')
-    form_class = ForgottenPasswordForm
+    def get_success_url(self):
+        raise NotImplementedError("Subclass باید get_success_url را override کند.")
 
-
-class PasswordResetDoneView(views.PasswordResetDoneView):
-    template_name = 'accounts/password_reset_done.html'
-
-
-class PasswordResetConfirmView(views.PasswordResetConfirmView):
-    template_name = 'accounts/password_reset_confirm.html'
-    success_url = reverse_lazy('accounts:password_reset_complete')
-
-
-class PasswordResetCompleteView(views.PasswordResetCompleteView):
-    template_name = 'accounts/password_reset_complete.html'
-
-
-
-
-class PasswordResetRequestView(generic.FormView):
-    """مرحله اول: دریافت و اعتبارسنجی ایمیل"""
-    template_name = 'accounts/password_reset_form.html'
-    form_class = EmailLookupForm
+    def pre_send_validation(self, form):
+        return True
 
     def form_valid(self, form):
-        # ذخیره ایمیل در سشن پس از تایید
-        self.request.session['reset_email'] = form.cleaned_data['email']
-        # ریدایرکت به صفحه تغییر رمز
+        phone = form.cleaned_data["phone"]
+
+        if not self.pre_send_validation(form):
+            return self.form_invalid(form)
+
+        otp_cache_key = self.get_otp_cache_key(phone)
+        rate_limit_key = self.get_rate_limit_key(phone)
+
+        if cache.get(rate_limit_key):
+            form.add_error(
+                None,
+                "کد تایید به‌تازگی برای این شماره ارسال شده است. لطفاً چند لحظه صبر کنید.",
+            )
+            return self.form_invalid(form)
+
+        otp_code = generate_otp_code()
+
+        cache.set(otp_cache_key, otp_code, self.otp_ttl)
+        cache.set(rate_limit_key, True, self.rate_limit_ttl)
+
+        success, message = send_otp_code(phone, otp_code)
+
+        if success:
+            self.request.session[self.get_session_key()] = phone
+            messages.success(self.request, self.get_success_message())
+            return redirect(self.get_success_url())
+
+        cache.delete(otp_cache_key)
+        cache.delete(rate_limit_key)
+        logger.error(
+            "OTP send failed for phone (masked): %s - %s",
+            phone[:4] + "****" + phone[-4:] if len(phone) >= 8 else "***",
+            message,
+        )
+        form.add_error(None, f"ارسال کد تایید با مشکل مواجه شد: {message}")
+        return self.form_invalid(form)
+
+
+class SendOtpView(BaseOtpView):
+    """ارسال OTP برای ورود/ثبت‌نام"""
+    template_name = 'accounts/send_otp.html'
+
+    def get_session_key(self):
+        return "otp_phone"
+
+    def get_success_url(self):
+        return reverse('accounts:verify_otp')
+
+    def get_success_message(self):
+        return "کد تایید برای شماره موبایل شما ارسال شد."
+
+
+class SendResetOtpView(BaseOtpView):
+    """ارسال OTP برای بازیابی رمز عبور"""
+    template_name = 'accounts/password_reset_request.html'
+
+    def pre_send_validation(self, form):
+        phone = form.cleaned_data["phone"]
+        user = get_user_by_phone(phone)
+
+        if not user:
+            form.add_error('phone', 'کاربری با این شماره موبایل در سیستم ثبت نشده است.')
+            return False
+        return True
+
+    def get_session_key(self):
+        return "reset_phone"
+
+    def get_success_url(self):
+        return reverse('accounts:verify_reset_otp')
+
+    def get_success_message(self):
+        return "کد تایید برای بازیابی رمز عبور به شماره موبایل شما ارسال شد."
+
+
+# ============================================================
+# تایید OTP (مرحله دوم)
+# ============================================================
+class BaseVerifyOtpView(generic.TemplateView):
+    """کلاس پایه برای تایید کد OTP"""
+    max_attempts = MAX_OTP_ATTEMPTS
+    attempts_ttl = 120  
+
+    phone_session_key = None
+    attempts_cache_prefix = None
+    redirect_on_missing = None
+
+    def get_otp_cache_key(self, phone):
+        return f"otp_{phone}"
+
+    def get_attempts_cache_key(self, phone):
+        return f"{self.attempts_cache_prefix}_{phone}"
+
+    def dispatch(self, request, *args, **kwargs):
+        phone = request.session.get(self.phone_session_key)
+        if not phone:
+            messages.error(request, 'ابتدا شماره موبایل خود را وارد کنید.')
+            return redirect(self.redirect_on_missing)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        phone = self.request.session.get(self.phone_session_key)
+        attempts = cache.get(self.get_attempts_cache_key(phone), 0)
+        context['attempts'] = attempts
+        context['max_attempts'] = self.max_attempts
+        context['masked_phone'] = (
+            f"{phone[:4]}****{phone[-4:]}" if phone and len(phone) >= 8 else None
+        )
+        return context
+
+    def on_success(self, request, phone):
+        raise NotImplementedError("Subclass باید on_success را override کند.")
+
+    def post(self, request, *args, **kwargs):
+        phone = request.session.get(self.phone_session_key)
+        code = request.POST.get('code', '').strip()
+        code = code.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
+
+        otp_key = self.get_otp_cache_key(phone)
+        attempts_key = self.get_attempts_cache_key(phone)
+        stored_code = cache.get(otp_key)
+
+        # ۱. کد منقضی یا وجود ندارد
+        if stored_code is None:
+            messages.error(request, 'کد تایید منقضی شده است. لطفاً دوباره درخواست کد دهید.')
+            request.session.pop(self.phone_session_key, None)
+            return redirect(self.redirect_on_missing)
+
+        # ۲. محدودیت تلاش
+        attempts = cache.get(attempts_key, 0)
+        if attempts >= self.max_attempts:
+            cache.delete(otp_key)
+            cache.delete(attempts_key)
+            request.session.pop(self.phone_session_key, None)
+            messages.error(
+                request,
+                f'تعداد تلاش‌ها ({self.max_attempts}) تمام شد. لطفاً کد جدید درخواست دهید.'
+            )
+            return redirect(self.redirect_on_missing)
+
+        # ۳. کد صحیح
+        if code == stored_code:
+            cache.delete(otp_key)
+            cache.delete(attempts_key)
+            request.session.pop(self.phone_session_key, None)
+            return self.on_success(request, phone)
+
+        # ۴. کد اشتباه
+        attempts += 1
+        cache.set(attempts_key, attempts, self.attempts_ttl)
+        messages.error(
+            request,
+            f'کد تایید صحیح نیست. (تلاش {attempts} از {self.max_attempts})'
+        )
+        return render(request, self.template_name, self.get_context_data())
+
+
+class VerifyOtpView(BaseVerifyOtpView):
+    """تایید OTP برای ورود یا ثبت‌نام"""
+    template_name = 'accounts/verify_otp.html'
+    phone_session_key = 'otp_phone'
+    attempts_cache_prefix = 'otp_attempts'
+    redirect_on_missing = 'accounts:send_otp'
+
+    def on_success(self, request, phone):
+        user = get_user_by_phone(phone)
+
+        if user is None:
+            request.session['verified_phone'] = phone
+            messages.info(request, 'شماره موبایل تایید شد؛ لطفاً ثبت‌نام را کامل کنید.')
+            return redirect('accounts:signup')
+
+        if not user.is_active:
+            messages.error(request, 'حساب کاربری شما غیرفعال است.')
+            return redirect('accounts:send_otp')
+
+        auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, 'ورود با موفقیت انجام شد.')
+        return redirect('website:index')
+
+
+class VerifyResetOtpView(BaseVerifyOtpView):
+    """تایید OTP برای بازیابی رمز عبور"""
+    template_name = 'accounts/verify_reset_otp.html'
+    phone_session_key = 'reset_phone'
+    attempts_cache_prefix = 'otp_attempts_reset'
+    redirect_on_missing = 'accounts:password_reset'
+
+    def on_success(self, request, phone):
+        request.session['reset_phone_verified'] = phone
+        messages.success(request, 'شماره موبایل شما تایید شد. لطفاً رمز عبور جدید را وارد کنید.')
         return redirect('accounts:password_reset_set')
 
 
+# ============================================================
+# تنظیم رمز عبور جدید (مرحله سوم بازیابی رمز)
+# ============================================================
 class PasswordResetSetView(generic.FormView):
-    """مرحله دوم: تنظیم رمز عبور جدید"""
+    """مرحله نهایی بازیابی رمز: تنظیم رمز جدید و لاگین خودکار"""
     template_name = 'accounts/password_reset_set.html'
-    form_class = SetPasswordForm
-    success_url = reverse_lazy('accounts:login')
+    form_class = ResetPasswordForm
 
     def dispatch(self, request, *args, **kwargs):
-        # اگر ایمیل در سشن نبود، کاربر را به مرحله اول برگردان
-        if 'reset_email' not in request.session:
+        phone = request.session.get('reset_phone_verified')
+
+        if not phone:
+            messages.error(request, 'ابتدا شماره موبایل خود را تایید کنید.')
             return redirect('accounts:password_reset')
+
+        self.user = get_user_by_phone(phone)
+
+        if not self.user:
+            messages.error(request, 'کاربر یافت نشد.')
+            request.session.pop('reset_phone_verified', None)
+            return redirect('accounts:password_reset')
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        # SetPasswordForm نیاز به آبجکت user دارد
-        try:
-            user = User.objects.get(email__iexact=self.request.session['reset_email'])
-            kwargs['user'] = user
-        except User.DoesNotExist:
-            # اگر کاربر پیدا نشد، سشن را پاک کن و برگرد به مرحله اول
-            if 'reset_email' in self.request.session:
-                del self.request.session['reset_email']
-            return redirect('accounts:password_reset')
+        kwargs['user'] = self.user
         return kwargs
 
     def form_valid(self, form):
         form.save()
-        messages.success(self.request, 'رمز عبور شما با موفقیت تغییر یافت. اکنون می‌توانید وارد شوید.')
-        # پاک کردن سشن پس از موفقیت
-        if 'reset_email' in self.request.session:
-            del self.request.session['reset_email']
-        return super().form_valid(form)
 
-import requests
-from decouple import config
-from django.conf import settings
+        auth_login(
+            self.request,
+            self.user,
+            backend="django.contrib.auth.backends.ModelBackend",
+        )
 
-class SmsIrService:
-    BASE_URL = "https://api.sms.ir/v1/send/verify"
+        self.request.session.pop('reset_phone_verified', None)
 
-    @classmethod
-    def send_otp(cls, mobile: str, code: str) -> dict:
-        """
-        ارسال کد تایید از طریق پنل sms.ir
-        """
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'text/plain', # طبق داکیومنت رسمی sms.ir
-            'x-api-key': config("SMS_IR_API_KEY", default="")
-        }
-        
+        messages.success(
+            self.request,
+            'رمز عبور شما با موفقیت تغییر یافت. خوش آمدید.'
+        )
 
-        payload = {
-            "mobile": mobile,
-            "templateId": config("SMS_IR_TEMPLATE_ID", cast=int, default=0),
-            "parameters": [
-                {
-                    # نام این فیلد باید دقیقاً با متغیر داخل قالب در پنل sms.ir یکی باشد
-                    "name": "Code", 
-                    "value": code
-                }
-            ]
-        }
-
-        try:
-            response = requests.post(cls.BASE_URL, json=payload, headers=headers, timeout=10)
-            response.raise_for_status()
-            return response.json()
-            
-        except requests.exceptions.RequestException as e:
-            # در پروداکشن حتماً این خطا را در Sentry لاگ کنید
-            return {"status": -1, "message": f"خطا در ارتباط با سرویس پیامک: {str(e)}"}    
-
-
-"""
-view for send otp : sms.ir
-"""
-def send_otp(request):
-    if request.method == "POST":
-        print('1')
-        form = SendOtpForm(request.POST)
-        if form.is_valid():
-            print('2')
-            phone = form.cleaned_data["phone"]
-            print(f"phone:{phone}") 
-            otp_cache_key = f"otp_{phone}"
-            rate_limit_key = f"otp_rate_{phone}"
-            # جلوگیری از ارسال رگباری
-            if cache.get(rate_limit_key):
-                form.add_error(
-                    None,
-                    "کد تایید به‌تازگی برای این شماره ارسال شده است. لطفاً چند لحظه صبر کنید.",
-                )
-            else:
-                # تولید کد ۵ رقمی
-                otp_code = get_random_string(
-                    length=5,
-                    allowed_chars="123456789",
-                )
-                print('3')
-                # ذخیره کد در کش به مدت ۲ دقیقه
-                cache.set(otp_cache_key, otp_code, 120)
-                # جلوگیری از درخواست مجدد تا ۱ دقیقه
-                cache.set(rate_limit_key, True, 60)
-                success, message = send_sms_ir_otp(phone, otp_code)
-
-                if success:
-
-                    # برای استفاده در مرحله تایید کد
-                    request.session["otp_phone"] = phone
-                    messages.success(
-                        request,
-                        "کد تایید برای شماره موبایل شما ارسال شد.",
-                    )
-                    print('4')
-                    # اگر صفحه تایید کد داری، اینجا ریدایرکت کن:
-                    return redirect("accounts:verify_otp")
-
-
-                else:
-                    print('5')
-                    # اگر ارسال ناموفق بود، کش را پاک می‌کنیم تا کاربر بتواند دوباره تلاش کند
-                    cache.delete(otp_cache_key)
-                    cache.delete(rate_limit_key)
-
-                    logger.error("OTP send failed for %s: %s", phone, message)
-
-                    form.add_error(
-                        None,
-                        "ارسال کد تایید با مشکل مواجه شد. دوباره تلاش کنید.",
-                    )
-    else:
-        print('6')
-        form = SendOtpForm()
-
-    return render(
-        request,
-        "accounts/send_otp.html",
-        {
-            "form": form,
-        },
-    )
-
-"""
-view for verify otp : sms.ir
-"""
-MAX_OTP_ATTEMPTS = 5
-
-def verify_otp(request):
-    phone = request.session.get("otp_phone")
-
-    # اگر کاربر بدون درخواست کد، مستقیم وارد این صفحه شد
-    if not phone:
-        messages.error(request, "ابتدا شماره موبایل خود را وارد کنید.")
-        return redirect("accounts:send_otp")
-
-    if request.method == "POST":
-        code = request.POST.get("code", "").strip()
-
-        # تبدیل اعداد فارسی به انگلیسی
-        code = code.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
-
-        otp_key = f"otp_{phone}"
-        attempts_key = f"otp_attempts_{phone}"
-
-        stored_code = cache.get(otp_key)
-
-        # کد منقضی شده یا وجود ندارد
-        if stored_code is None:
-            messages.error(request, "کد تایید منقضی شده است. لطفاً دوباره درخواست کد دهید.")
-            return redirect("accounts:send_otp")
-
-        # محدودیت تعداد تلاش
-        attempts = cache.get(attempts_key, 0)
-        if attempts >= MAX_OTP_ATTEMPTS:
-            cache.delete(otp_key)
-            cache.delete(attempts_key)
-            messages.error(request, "تعداد تلاش‌ها تمام شد. لطفاً کد جدید درخواست دهید.")
-            return redirect("accounts:send_otp")
-
-        if code == stored_code:
-            # موفقیت: کد یک‌بارمصرف است، پس حذفش می‌کنیم
-            cache.delete(otp_key)
-            cache.delete(attempts_key)
-            request.session.pop("otp_phone", None)
-
-            user = User.objects.filter(phone_number=phone).first()
-
-            if user is None:
-                # کاربر جدید: شماره تاییدشده را نگه می‌داریم برای تکمیل ثبت‌نام
-                request.session["verified_phone"] = phone
-                messages.info(request, "شماره موبایل تایید شد؛ لطفاً ثبت‌نام را کامل کنید.")
-                return redirect("accounts:signup")
-
-            if not user.is_active:
-                messages.error(request, "حساب کاربری شما غیرفعال است.")
-                return redirect("accounts:send_otp")
-
-            # اگر چند AUTHENTICATION_BACKENDS تعریف کردی، بک‌اند را صریح بفرست:
-            # auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            auth_login(request, user)
-            messages.success(request, "ورود با موفقیت انجام شد.")
-            return redirect("/")
-        else:
-            attempts += 1
-            cache.set(attempts_key, attempts, 300)
-            messages.error(
-                request,
-                f"کد تایید صحیح نیست. (تلاش {attempts} از {MAX_OTP_ATTEMPTS})"
-            )
-
-    return render(request, "accounts/verify_otp.html")
+        return redirect('website:index')

@@ -1,0 +1,54 @@
+{% if messages %}
+  {% for message in messages %}
+    <script>
+      (function () {
+        const tag = "{{ message.tags|escapejs }}";
+        let bg = "linear-gradient(to right, #00b09b, #96c93d)";            // success
+        if (tag === "error")   bg = "linear-gradient(to right, #e53935, #b71c1c)";
+        if (tag === "warning") bg = "linear-gradient(to right, #f59e0b, #d97706)";
+        if (tag === "info")    bg = "linear-gradient(to right, #2563eb, #1d4ed8)";
+        Toastify({
+          text: "{{ message|escapejs }}",
+          duration: 5000,
+          close: true,
+          gravity: "top",
+          position: "right",
+          className: tag,
+          style: { background: bg },
+        }).showToast();
+      })();
+    </script>
+  {% endfor %}
+{% endif %}
+
+{% if form.errors %}
+  {% for field in form %}
+    {% for error in field.errors %}
+      <script>
+        Toastify({
+          text: "{{ field.label|escapejs }}: {{ error|escapejs }}",
+          duration: 5000,
+          close: true,
+          gravity: "top",
+          position: "right",
+          className: "error",
+          style: { background: "linear-gradient(to right, #e53935, #b71c1c)" },
+        }).showToast();
+      </script>
+    {% endfor %}
+  {% endfor %}
+
+  {% if form.non_field_errors %}
+    <script>
+      Toastify({
+        text: "{{ form.non_field_errors.as_text|escapejs }}",
+        duration: 5000,
+        close: true,
+        gravity: "top",
+        position: "right",
+        className: "error",
+        style: { background: "linear-gradient(to right, #e53935, #b71c1c)" },
+      }).showToast();
+    </script>
+  {% endif %}
+{% endif %}

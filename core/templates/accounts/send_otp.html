@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>فیدان - دریافت کد تایید</title>
+  <title>هاپگو - دریافت کد تایید</title>
   <link rel="canonical" href="{{ canonical_path }}" />
   <link rel="stylesheet" href="{% static 'karin_template/styles/app.css' %}">
   <link rel="stylesheet" href="{% static 'karin_template/node_modules/swiper/swiper-bundle.css' %}">
@@ -22,9 +22,12 @@
       document.documentElement.classList.remove("dark");
     }
   </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
 </head>
 
 <body>
+    {% include "partials/toasts.html" %}
 
   <!-- ALL ICONS -->
   <svg class="hidden">
@@ -71,7 +74,7 @@
         </button>
         <a href="index.html" class="flex flex-col text-center">
           <span class="font-MorabbaMedium text-4xl flex items-center">
-            <span class="text-blue-500">فی</span>دان
+            <span class="text-blue-500">Go</span>Hop
           </span>
         </a>
       </div>
@@ -85,23 +88,9 @@
         </div>
 
         <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 leading-6">
-          برای ثبت‌نام در فیدان، لطفاً شماره موبایل خود را وارد کنید تا کد تایید برای شما ارسال شود.
+          برای ثبت‌نام در هاپگو، لطفاً شماره موبایل خود را وارد کنید تا کد تایید برای شما ارسال شود.
         </p>
 
-        <!-- ==================== MESSAGES ==================== -->
-        {% if messages %}
-          <div class="mb-4 space-y-2">
-            {% for message in messages %}
-              <div class="p-3 rounded-md text-sm font-DanaMedium
-                {% if message.tags == 'success' %}bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300
-                {% elif message.tags == 'error' %}bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300
-                {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300
-                {% else %}bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
 
         <!-- ==================== SENT STATE ==================== -->
         {% if sent %}
@@ -164,7 +153,7 @@
               </div>
 
               {% if form.phone.errors %}
-                <p class="text-error mt-2 text-sm">{{ form.phone.errors }}</p>
+                <p class="text-error mt-2 text-sm">{{ form.phone.errors.0 }}</p>
               {% endif %}
 
               {% if form.non_field_errors %}

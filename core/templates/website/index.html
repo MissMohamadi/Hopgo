@@ -506,8 +506,12 @@ details[open] summary::after{
       .contact-dog{ width:130px; margin-inline-start:0; }
     }
   </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js"></script>
+
 </head>
 <body>
+  {% include "partials/toasts.html" %}
 
   <!-- ================= هدر ================= -->
   <header class="site-header">
@@ -518,8 +522,18 @@ details[open] summary::after{
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap&lang=fa" rel="stylesheet">
     <div class="container header-inner">
       <div class="auth">
-        <a href="{% url 'accounts:send_otp' %}" class="btn btn-primary">ثبت‌نام</a>
-        <a href="{% url 'accounts:login' %}" class="btn btn-ghost">ورود</a>
+        {% if user.is_authenticated %}
+                        <form action="{% url 'accounts:logout' %}" method="POST">
+                            {% csrf_token %}
+                            <button type="btn btn-ghost" class="nav-link btn btn-link p-10 border-0">
+                                خروج 
+                            </button>
+                        </form>
+                    
+                {% else %}
+                        <a class="btn btn-primary" href="{% url 'accounts:login' %}">ورود/ثبت نام</a>
+                {% endif %}
+        
       </div>
       <!-- checkbox پنهان + label = منوی همبرگری بدون جاوااسکریپت -->
       <input type="checkbox" id="menu-toggle" class="menu-toggle">
@@ -538,6 +552,7 @@ details[open] summary::after{
   </header>
 
   <main>
+    
     <!-- ================= هیرو ================= -->
     <section class="hero">
       <div class="container hero-inner">
