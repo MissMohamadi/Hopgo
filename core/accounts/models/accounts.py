@@ -1,7 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.utils.crypto import get_random_string 
 from django.db import models
 from ..validators import (
     validate_iranian_national_id, 
@@ -11,9 +10,9 @@ from ..validators import (
 
 
 class UserType(models.IntegerChoices):
-    customer = 1 , _('داگ واکر')
-    supervisor = 2, _('داگ اونر')
-    admin = 10, _('ادمین')
+    customer = 1 , _('owner')
+    supervisor = 2, _('walker')
+    admin = 10, _('admin')
     
 
 
@@ -61,7 +60,7 @@ AUTH_PROVIDERS = {'facebook': 'facebook', 'google': 'google',
 class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(_("email address"), unique=True)
-    username = models.CharField(_("username"), unique=True,blank=True,null=True,max_length=255)
+    username = models.CharField(_("username"), unique=True,max_length=255)
     first_name = models.CharField(max_length=255,blank=True,null=True)
     last_name = models.CharField(max_length=255,blank=True,null=True)
     phone_number = models.CharField(
@@ -118,6 +117,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             return "***"
         return f"{phone[:4]}****{phone[-4:]}"
 
+    def __str__(self):
+        return self.username or self.email or f"User {self.pk}"
 
 
 

@@ -19,6 +19,9 @@ urlpatterns = [
     path('password_reset/', views.SendResetOtpView.as_view(), name='password_reset'),
     path('password_reset/verify/', views.VerifyResetOtpView.as_view(), name='verify_reset_otp'),
     path('password_reset/set/', views.PasswordResetSetView.as_view(), name='password_reset_set'),
+
+    #انتخاب نقش توسط کاربر
+    path("select-role/", views.RoleSelectView.as_view(), name="select_role"),
   
 
 ]

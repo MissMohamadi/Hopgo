@@ -15,18 +15,76 @@ import logging
 from ..forms import SendOtpForm, SignUpForm, LoginForm, ResetPasswordForm
 from ..services import generate_otp_code, send_otp_code
 from ..utils import get_user_by_phone, normalize_phone_number
+from ..models import UserType
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
 MAX_OTP_ATTEMPTS = 5
 
+
+SIGNUP_ROLE_SESSION_KEY = "signup_role"
+VALID_SIGNUP_ROLES = ("walker", "owner")
+
+
+# ============================================================
+# انتخاب نقش
+# ============================================================
+
+
+def role_to_user_type(role: str) -> int:
+    """
+    تبدیل نقش انتخاب شده در Session به مقدار UserType
+    طبق مدل جدید: customer=داگ واکر, supervisor=داگ اونر
+    """
+    if role == "walker":
+        return UserType.supervisor.value  # 2 → walker
+    return UserType.customer.value 
+
+class RoleSelectView(generic.TemplateView):
+    template_name = "accounts/select_role.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("website:index")
+        return super().dispatch(request, *args, **kwargs)
+
+    def _save_role_and_redirect(self, request, role):
+        if role not in VALID_SIGNUP_ROLES:
+            # ✅ کاربر در همین صفحه می‌ماند — بدون ریدایرکت
+            messages.error(request, "لطفاً یکی از گزینه‌ها را انتخاب کنید.")
+            return None
+
+        request.session[SIGNUP_ROLE_SESSION_KEY] = role
+        request.session.modified = True
+
+        # ✅ اگر قبلاً OTP را تایید کرده، مستقیم برود signup
+        if request.session.get('verified_phone'):
+            return redirect('accounts:signup')
+        # در غیر این صورت برود send_otp
+        return redirect('accounts:send_otp')
+
+    def get(self, request, *args, **kwargs):
+        role = request.GET.get("role")
+        if role:
+            response = self._save_role_and_redirect(request, role)
+            if response:
+                return response
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        role = request.POST.get("role")
+        response = self._save_role_and_redirect(request, role)
+        if response:
+            return response
+        # ✅ نقش نامعتبر بود → کاربر در همین صفحه می‌ماند
+        return self.render_to_response(self.get_context_data())
+    
 # ============================================================
 # ثبت‌نام و ورود
 # ============================================================
 
 class RegistrationView(generic.CreateView):
-    """ثبت‌نام کاربر با نام کاربری، ایمیل و رمز عبور"""
     template_name = 'accounts/signup.html'
     form_class = SignUpForm
     redirect_authenticated_user = True
@@ -35,45 +93,35 @@ class RegistrationView(generic.CreateView):
         if self.redirect_authenticated_user and request.user.is_authenticated:
             return HttpResponseRedirect(reverse('website:index'))
 
-        verified_phone = request.session.get("verified_phone")
-        self.verified_phone = normalize_phone_number(verified_phone) if verified_phone else ""
+        if not request.session.get('verified_phone'):
+            messages.error(request, 'ابتدا شماره موبایل خود را تایید کنید.')
+            return redirect('accounts:send_otp')
 
-        if not self.verified_phone:
-            messages.error(
-                request,
-                "ابتدا شماره موبایل خود را تایید کنید."
-            )
-            return redirect("accounts:send_otp")
-
-        # جلوگیری از ثبت‌نام مجدد با شماره‌ای که قبلاً ثبت شده
-        existing_user = get_user_by_phone(self.verified_phone)
-        if existing_user:
-            messages.error(
-                request,
-                "این شماره موبایل قبلاً ثبت شده است. لطفاً وارد شوید."
-            )
-            return redirect("accounts:send_otp")
+        # ✅ چک نقش فقط اینجا
+        self.signup_role = request.session.get(SIGNUP_ROLE_SESSION_KEY)
+        if self.signup_role not in VALID_SIGNUP_ROLES:
+            # بدون پیام خطا — ساکت بفرست به انتخاب نقش
+            return redirect('accounts:select_role')
 
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        self.object = form.save()
-         # ذخیره شماره موبایل تایید شده در مدل کاربر
-        self.object.phone_number = self.verified_phone
+        verified_phone = self.request.session.get('verified_phone')
 
-        # اگر می‌خواهید کاربر بعد از ثبت‌نام حتماً verified باشد
-        self.object.is_verified = True
-
+        self.object = form.save(commit=False)
+        self.object.phone_number = verified_phone
+        self.object.type = role_to_user_type(self.signup_role)
         self.object.save()
 
-        # پاک کردن شماره از Session بعد از ثبت‌نام موفق
-        self.request.session.pop("verified_phone", None)
-        self.request.session.pop("otp_phone", None)
+        self.request.session.pop('verified_phone', None)
+        self.request.session.pop(SIGNUP_ROLE_SESSION_KEY, None)
+
         auth_login(
             self.request,
             self.object,
             backend="django.contrib.auth.backends.ModelBackend",
         )
+
         messages.success(
             self.request,
             f'{self.object.username} عزیز، ثبت‌نام کامل شد؛ خوش آمدید! 👋'
@@ -84,6 +132,7 @@ class RegistrationView(generic.CreateView):
         logger.warning("Signup invalid: %s", form.errors)
         return self.render_to_response(self.get_context_data(form=form))
 
+    
 class LoginView(auth_views.LoginView):
     """ورود با نام کاربری و رمز عبور"""
     template_name = 'accounts/login.html'
@@ -299,13 +348,23 @@ class VerifyOtpView(BaseVerifyOtpView):
     attempts_cache_prefix = 'otp_attempts'
     redirect_on_missing = 'accounts:send_otp'
 
+
     def on_success(self, request, phone):
         user = get_user_by_phone(phone)
 
         if user is None:
+            # ✅ چک کردن نقش قبل از هدایت به ثبت‌نام
+            role = request.session.get(SIGNUP_ROLE_SESSION_KEY)
+            if role not in VALID_SIGNUP_ROLES:
+                messages.error(request, "لطفاً نوع فعالیت خود را انتخاب کنید.")
+                return redirect("accounts:select_role")
+
             request.session['verified_phone'] = phone
             messages.info(request, 'شماره موبایل تایید شد؛ لطفاً ثبت‌نام را کامل کنید.')
             return redirect('accounts:signup')
+
+        # ✅ کاربر قدیمی: نقش موقت را پاک کن تا روی اکانتش اثر نگذارد
+        request.session.pop(SIGNUP_ROLE_SESSION_KEY, None)
 
         if not user.is_active:
             messages.error(request, 'حساب کاربری شما غیرفعال است.')
@@ -314,7 +373,6 @@ class VerifyOtpView(BaseVerifyOtpView):
         auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         messages.success(request, 'ورود با موفقیت انجام شد.')
         return redirect('website:index')
-
 
 class VerifyResetOtpView(BaseVerifyOtpView):
     """تایید OTP برای بازیابی رمز عبور"""
