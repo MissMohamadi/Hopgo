@@ -58,12 +58,13 @@ class RoleSelectView(generic.TemplateView):
         request.session[SIGNUP_ROLE_SESSION_KEY] = role
         request.session.modified = True
 
-        # ✅ اگر قبلاً OTP را تایید کرده، مستقیم برود signup
-        if request.session.get('verified_phone'):
-            return redirect('accounts:signup')
-        # در غیر این صورت برود send_otp
-        return redirect('accounts:send_otp')
-
+        #  اگر قبلاً OTP را تایید کرده، مستقیم برود signup
+        # if request.session.get('verified_phone'):
+        #     return redirect('accounts:signup')
+        # # در غیر این صورت برود send_otp
+        # return redirect('accounts:send_otp')
+        return redirect('accounts:signup')
+    
     def get(self, request, *args, **kwargs):
         role = request.GET.get("role")
         if role:
@@ -93,11 +94,12 @@ class RegistrationView(generic.CreateView):
         if self.redirect_authenticated_user and request.user.is_authenticated:
             return HttpResponseRedirect(reverse('website:index'))
 
-        if not request.session.get('verified_phone'):
-            messages.error(request, 'ابتدا شماره موبایل خود را تایید کنید.')
-            return redirect('accounts:send_otp')
+        # verify phone number
+        # if not request.session.get('verified_phone'):
+        #     messages.error(request, 'ابتدا شماره موبایل خود را تایید کنید.')
+        #     return redirect('accounts:send_otp')
 
-        # ✅ چک نقش فقط اینجا
+        #  چک نقش فقط اینجا
         self.signup_role = request.session.get(SIGNUP_ROLE_SESSION_KEY)
         if self.signup_role not in VALID_SIGNUP_ROLES:
             # بدون پیام خطا — ساکت بفرست به انتخاب نقش
@@ -143,8 +145,20 @@ class LoginView(auth_views.LoginView):
         user = form.get_user()
         response = super().form_valid(form)
         messages.success(self.request, f'{user.username} عزیز، با موفقیت وارد شدید 👋')
+
         if next_url := self.request.GET.get("next"):
             return redirect(next_url)
+
+        user_role = getattr(user, 'type', None)
+        print(f"user_role:{user_role} ")
+
+        if user_role == 2:
+            return redirect('DogWalker:index')  # نام URL صفحه واکر
+        elif user_role == 1 :
+            return redirect('DogOwner:index')   # نام URL صفحه اونر
+
+            
+        # در صورتی که نقش مشخص نبود یا مقادیر دیگری داشت (ریدایرکت پیش‌فرض)
         return response
 
     def form_invalid(self, form: AuthenticationForm):

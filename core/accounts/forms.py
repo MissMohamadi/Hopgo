@@ -18,7 +18,7 @@ class PersianPasswordErrorsMixin:
     """mixin مشترک برای فارسی‌سازی خطاهای ولیدیتورهای رمز عبور"""
     password_error_messages = {
         "password_too_similar": _("رمز عبور شما مشابه اطلاعات شخصی شماست."),
-        "password_too_short": _("رمز عبور باید حداقل %(min_length)d نویسه باشد."),
+        "password_too_short": _("رمز عبور باید حداقل 8 نویسه باشد."),
         "password_too_common": _("این رمز عبور بسیار رایج است؛ لطفاً رمز قوی‌تری انتخاب کنید."),
         "password_entirely_numeric": _("رمز عبور نمی‌تواند کاملاً عددی باشد."),
     }
