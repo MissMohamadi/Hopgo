@@ -16,6 +16,7 @@ from ..forms import SendOtpForm, SignUpForm, LoginForm, ResetPasswordForm
 from ..services import generate_otp_code, send_otp_code
 from ..utils import get_user_by_phone, normalize_phone_number
 from ..models import UserType
+from ..utils import get_role_based_redirect
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +129,8 @@ class RegistrationView(generic.CreateView):
             self.request,
             f'{self.object.username} عزیز، ثبت‌نام کامل شد؛ خوش آمدید! 👋'
         )
-        return redirect(reverse('website:index'))
+        return get_role_based_redirect(self.object)
+
 
     def form_invalid(self, form):
         logger.warning("Signup invalid: %s", form.errors)
@@ -149,17 +151,7 @@ class LoginView(auth_views.LoginView):
         if next_url := self.request.GET.get("next"):
             return redirect(next_url)
 
-        user_role = getattr(user, 'type', None)
-        print(f"user_role:{user_role} ")
-
-        if user_role == 2:
-            return redirect('DogWalker:index')  # نام URL صفحه واکر
-        elif user_role == 1 :
-            return redirect('DogOwner:index')   # نام URL صفحه اونر
-
-            
-        # در صورتی که نقش مشخص نبود یا مقادیر دیگری داشت (ریدایرکت پیش‌فرض)
-        return response
+        return get_role_based_redirect(user, next_url=next_url)
 
     def form_invalid(self, form: AuthenticationForm):
         logger.warning("Login invalid: %s", form.errors)

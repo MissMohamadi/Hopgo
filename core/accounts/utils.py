@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from .validators import normalize_phone
+from django.shortcuts import redirect
+
 
 User = get_user_model()
 
@@ -50,4 +52,19 @@ def normalize_phone_number(phone: str) -> str:
     if phone.startswith("9") and len(phone) == 10:
         phone = "0" + phone
 
-    return phone        
+    return phone     
+
+def get_role_based_redirect(user, next_url=None):
+    if next_url:
+        return redirect(next_url)
+    
+    user_role = getattr(user, 'type', None) 
+    if user_role == 2 :
+        return redirect('DogWalker:index')  
+    elif user_role == 1 :
+        return redirect('DogOwner:index')   
+                
+            # در صورتی که نقش مشخص نبود یا مقادیر دیگری داشت (ریدایرکت پیش‌فرض)
+    return redirect('website:index')
+    
+    
