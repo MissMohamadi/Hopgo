@@ -95,28 +95,27 @@ class RegistrationView(generic.CreateView):
         if self.redirect_authenticated_user and request.user.is_authenticated:
             return HttpResponseRedirect(reverse('website:index'))
 
-        # verify phone number
-        # if not request.session.get('verified_phone'):
-        #     messages.error(request, 'ابتدا شماره موبایل خود را تایید کنید.')
-        #     return redirect('accounts:send_otp')
-
-        #  چک نقش فقط اینجا
+        # ✅ چک نقش
         self.signup_role = request.session.get(SIGNUP_ROLE_SESSION_KEY)
         if self.signup_role not in VALID_SIGNUP_ROLES:
-            # بدون پیام خطا — ساکت بفرست به انتخاب نقش
             return redirect('accounts:select_role')
 
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        verified_phone = self.request.session.get('verified_phone')
-
+        # ✅ شماره موبایل از فرم خوانده می‌شود (نه از سشن)
         self.object = form.save(commit=False)
-        self.object.phone_number = verified_phone
+        
+        # نرمال‌سازی شماره قبل از ذخیره
+        phone = form.cleaned_data.get('phone_number')
+        if phone:
+            self.object.phone_number = normalize_phone_number(phone)
+        
+        # ذخیره نقش
         self.object.type = role_to_user_type(self.signup_role)
         self.object.save()
 
-        self.request.session.pop('verified_phone', None)
+        # ✅ فقط پاک کردن signup_role (verified_phone دیگر وجود ندارد)
         self.request.session.pop(SIGNUP_ROLE_SESSION_KEY, None)
 
         auth_login(
@@ -131,12 +130,9 @@ class RegistrationView(generic.CreateView):
         )
         return get_role_based_redirect(self.object)
 
-
     def form_invalid(self, form):
         logger.warning("Signup invalid: %s", form.errors)
-        return self.render_to_response(self.get_context_data(form=form))
-
-    
+        return self.render_to_response(self.get_context_data(form=form))    
 class LoginView(auth_views.LoginView):
     """ورود با نام کاربری و رمز عبور"""
     template_name = 'accounts/login.html'

@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
 from .utils import normalize_phone_number
+from .validators import validate_phone_number
 
 User = get_user_model()
 
@@ -46,11 +47,25 @@ class SignUpForm(PersianPasswordErrorsMixin, UserCreationForm):
     error_messages = {
         "password_mismatch": _("رمز عبور و تکرار آن با هم همخوانی ندارند."),
     }
+    
+    # ✅ اضافه کردن فیلد شماره موبایل
+    phone_number = forms.CharField(
+        label="شماره موبایل",
+        max_length=11,
+        validators=[validate_phone_number],
+        widget=forms.TextInput(attrs={
+            "dir": "ltr",
+            "inputmode": "tel",
+            "placeholder": "09123456789",
+            "autocomplete": "tel",
+        }),
+    )
+    
     captcha = OfflineCaptchaField(widget=OfflineCaptchaWidget())
 
     class Meta:
         model = User
-        fields = ("username", "email", "password1", "password2")
+        fields = ("username", "email", "phone_number", "password1", "password2")
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
@@ -64,14 +79,30 @@ class SignUpForm(PersianPasswordErrorsMixin, UserCreationForm):
             raise ValidationError("این ایمیل قبلاً ثبت شده است.", code="duplicate")
         return email
 
+    # ✅ اضافه کردن validation برای شماره موبایل
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get("phone_number")
+        if phone:
+            phone = normalize_phone_number(phone)
+            if User.objects.filter(phone_number=phone).exists():
+                raise ValidationError(
+                    "این شماره موبایل قبلاً ثبت شده است.",
+                    code="duplicate"
+                )
+        return phone
+
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            raise ValidationError(self.error_messages["password_mismatch"], code="password_mismatch")
+            raise ValidationError(
+                self.error_messages["password_mismatch"],
+                code="password_mismatch"
+            )
         self.validate_password_fa(password2, self.instance)
         return password2
 
+    
 class LoginForm(AuthenticationForm):
     captcha = OfflineCaptchaField(widget=OfflineCaptchaWidget())
     error_messages = {
